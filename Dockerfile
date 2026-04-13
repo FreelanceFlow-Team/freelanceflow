@@ -73,5 +73,5 @@ USER appuser
 WORKDIR /app/apps/api
 EXPOSE 3001
 
-# Run migrations then start
-CMD ["sh", "-c", "npx prisma migrate deploy && npx prisma db push --skip-generate && node dist/main"]
+# Sync schema to DB then start
+CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && node dist/main"]
