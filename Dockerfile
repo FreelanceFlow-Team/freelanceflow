@@ -1,5 +1,5 @@
-# ─── Stage 1: deps ────────────────────────────────────────────────────────────
-FROM node:22-alpine AS deps
+# ─── Stage 1: builder ─────────────────────────────────────────────────────────
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -8,17 +8,12 @@ COPY apps/api/package.json ./apps/api/package.json
 
 RUN HUSKY=0 npm ci --workspace=@freelanceflow/api --include-workspace-root
 
-# ─── Stage 2: builder ─────────────────────────────────────────────────────────
-FROM deps AS builder
-WORKDIR /app
-
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
-WORKDIR /app/apps/api
-RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate && npm run build
+RUN cd apps/api && DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate && cd /app && npm run build --workspace=@freelanceflow/api
 
-# ─── Stage 3: production ──────────────────────────────────────────────────────
+# ─── Stage 2: production ──────────────────────────────────────────────────────
 FROM node:22-alpine AS production
 WORKDIR /app
 
