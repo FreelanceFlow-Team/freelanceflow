@@ -15,10 +15,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@freelanceflow/types': new URL(
-        '../../packages/types/src',
-        import.meta.url,
-      ).pathname,
+      '@freelanceflow/types': new URL('../../packages/types/src', import.meta.url).pathname,
     },
   },
 });
