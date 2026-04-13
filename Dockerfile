@@ -16,7 +16,7 @@ COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
 WORKDIR /app/apps/api
-RUN npx prisma generate && npm run build
+RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate && npm run build
 
 # ─── Stage 3: production ──────────────────────────────────────────────────────
 FROM node:22-alpine AS production
