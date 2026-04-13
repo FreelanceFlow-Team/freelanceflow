@@ -10,9 +10,10 @@ import { useRegister } from '@/features/auth/hooks/use-auth';
 
 const registerSchema = z
   .object({
-    name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
+    firstName: z.string().min(1, 'Le prénom est requis'),
+    lastName: z.string().min(1, 'Le nom est requis'),
     email: z.string().email('Email invalide'),
-    password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
+    password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -39,7 +40,8 @@ export default function RegisterPage() {
     setError(null);
     register(
       {
-        name: data.name,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         password: data.password,
       },
@@ -69,18 +71,37 @@ export default function RegisterPage() {
             )}
 
             <div>
-              <label htmlFor="name" className="label-text">
-                Nom complet
+              <label htmlFor="firstName" className="label-text">
+                Prénom
               </label>
               <input
-                {...registerField('name')}
+                {...registerField('firstName')}
                 type="text"
-                id="name"
-                placeholder="Jean Dupont"
+                id="firstName"
+                placeholder="Jean"
                 className="input-field"
                 disabled={isPending}
               />
-              {errors.name && <p className="text-red-error text-sm mt-1">{errors.name.message}</p>}
+              {errors.firstName && (
+                <p className="text-red-error text-sm mt-1">{errors.firstName.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="lastName" className="label-text">
+                Nom
+              </label>
+              <input
+                {...registerField('lastName')}
+                type="text"
+                id="lastName"
+                placeholder="Dupont"
+                className="input-field"
+                disabled={isPending}
+              />
+              {errors.lastName && (
+                <p className="text-red-error text-sm mt-1">{errors.lastName.message}</p>
+              )}
             </div>
 
             <div>

@@ -2,7 +2,6 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-# Copy manifests first (layer cache)
 COPY package.json package-lock.json ./
 COPY packages/types/package.json ./packages/types/package.json
 COPY apps/api/package.json ./apps/api/package.json
@@ -15,7 +14,6 @@ RUN node -e "\
   delete p.scripts.prepare;\
   fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
 
-# Copy source
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
@@ -25,12 +23,10 @@ RUN mkdir -p apps/web/src && echo '{}' > apps/web/tsconfig.json
 # Install all deps (dev included — needed for SWC + Prisma CLI)
 RUN npm ci
 
-# Generate Prisma client (dummy URL just for codegen)
 RUN cd apps/api && \
     DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
     npx prisma generate
 
-# Compile with SWC (avoids @nestjs/cli / ora / wcwidth issues entirely)
 RUN cd apps/api && npm run build
 
 # ─── Stage 2: production ───────────────────────────────────────────────────────

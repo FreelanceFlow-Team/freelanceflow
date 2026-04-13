@@ -11,15 +11,19 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface AuthResponse {
-  access_token: string;
+  accessToken: string;
+  refreshToken: string;
   user: {
     id: string;
     email: string;
-    name: string;
+    firstName: string;
+    lastName: string;
+    role: string;
   };
 }
 
@@ -32,7 +36,7 @@ export function useLogin() {
       return response;
     },
     onSuccess: (data) => {
-      localStorage.setItem('authToken', data.access_token);
+      localStorage.setItem('authToken', data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
     },
   });
@@ -47,7 +51,7 @@ export function useRegister() {
       return response;
     },
     onSuccess: (data) => {
-      localStorage.setItem('authToken', data.access_token);
+      localStorage.setItem('authToken', data.accessToken);
       localStorage.setItem('user', JSON.stringify(data.user));
     },
   });
