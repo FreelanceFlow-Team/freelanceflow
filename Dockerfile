@@ -9,7 +9,7 @@ COPY apps/api/package.json ./apps/api/package.json
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
-RUN HUSKY=0 npm ci
+RUN npm ci --ignore-scripts
 
 # Generate Prisma client
 RUN cd apps/api && DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
