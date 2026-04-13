@@ -71,7 +71,7 @@ describe('InvoicesService', () => {
     vi.mocked(prisma.invoice.findFirst).mockResolvedValue({
       ...mockInvoice,
       number: 'FF-2026-004',
-    });
+    } as any);
 
     const number = await svc.generateNumber('user-1');
     expect(number).toBe('FF-2026-005');
@@ -82,7 +82,7 @@ describe('InvoicesService', () => {
     const { svc, prisma } = buildService();
     // generateNumber call
     vi.mocked(prisma.invoice.findFirst).mockResolvedValue(null);
-    vi.mocked(prisma.invoice.create).mockResolvedValue(mockInvoice);
+    vi.mocked(prisma.invoice.create).mockResolvedValue(mockInvoice as any);
 
     await svc.create('user-1', {
       clientId: 'client-1',
@@ -104,7 +104,7 @@ describe('InvoicesService', () => {
     vi.mocked(prisma.invoice.findFirst).mockResolvedValue({
       ...mockInvoice,
       status: 'sent' as const,
-    });
+    } as any);
 
     await expect(svc.remove('inv-1', 'user-1')).rejects.toThrow(BadRequestException);
     expect(prisma.invoice.delete).not.toHaveBeenCalled();

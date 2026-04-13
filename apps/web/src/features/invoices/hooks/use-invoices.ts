@@ -48,10 +48,19 @@ export function useInvoice(invoiceId: string) {
   });
 }
 
+export interface CreateInvoiceDto {
+  clientId: string;
+  issueDate: string;
+  dueDate: string;
+  lines: { description: string; quantity: number; unitPrice: number }[];
+  notes?: string;
+  taxRate?: number;
+}
+
 export function useCreateInvoice() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Omit<Invoice, 'id' | 'invoiceNumber' | 'createdAt' | 'updatedAt'>) => {
+    mutationFn: async (data: CreateInvoiceDto) => {
       return api.post<Invoice>('/invoices', data);
     },
     onSuccess: () => {

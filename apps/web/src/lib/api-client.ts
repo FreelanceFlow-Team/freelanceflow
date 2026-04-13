@@ -17,9 +17,9 @@ async function getAuthToken(): Promise<string | null> {
 export async function apiClient<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   const { skipAuth = false, ...fetchOptions } = options;
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...fetchOptions.headers,
+    ...(fetchOptions.headers as Record<string, string>),
   };
 
   if (!skipAuth) {
@@ -74,7 +74,7 @@ export const api = {
 
   downloadPdf: async (endpoint: string): Promise<Blob> => {
     const token = await getAuthToken();
-    const headers: HeadersInit = {};
+    const headers: Record<string, string> = {};
 
     if (token) {
       headers.Authorization = `Bearer ${token}`;

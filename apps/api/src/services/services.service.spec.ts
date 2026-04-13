@@ -40,7 +40,7 @@ describe('ServicesService', () => {
   // 1. findAll — returns services for user
   it('findAll: returns all services belonging to the user', async () => {
     const { svc, prisma } = buildService();
-    vi.mocked(prisma.service.findMany).mockResolvedValue([mockService]);
+    vi.mocked(prisma.service.findMany).mockResolvedValue([mockService] as any);
 
     const result = await svc.findAll('user-1');
 
@@ -63,7 +63,7 @@ describe('ServicesService', () => {
   // 3. create — returns created service
   it('create: creates and returns the new service', async () => {
     const { svc, prisma } = buildService();
-    vi.mocked(prisma.service.create).mockResolvedValue(mockService);
+    vi.mocked(prisma.service.create).mockResolvedValue(mockService as any);
 
     const dto = {
       name: 'Web Development',
@@ -81,8 +81,8 @@ describe('ServicesService', () => {
   // 4. remove — deletes service when it belongs to user
   it('remove: deletes service when it exists and belongs to user', async () => {
     const { svc, prisma } = buildService();
-    vi.mocked(prisma.service.findFirst).mockResolvedValue(mockService);
-    vi.mocked(prisma.service.delete).mockResolvedValue(mockService);
+    vi.mocked(prisma.service.findFirst).mockResolvedValue(mockService as any);
+    vi.mocked(prisma.service.delete).mockResolvedValue(mockService as any);
 
     await svc.remove('service-1', 'user-1');
 

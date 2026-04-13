@@ -35,7 +35,7 @@ export class PdfService {
     const element = React.createElement(InvoiceTemplate, {
       invoice,
       issuerName,
-    });
+    }) as any;
     const buffer = await renderToBuffer(element);
     return Buffer.from(buffer);
   }

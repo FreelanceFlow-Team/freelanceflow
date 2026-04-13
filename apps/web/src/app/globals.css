@@ -1,5 +1,18 @@
 @import 'tailwindcss';
 
+@theme {
+  --color-blue-primary: #3b82f6;
+  --color-blue-dark: #1e40af;
+  --color-green-success: #10b981;
+  --color-red-error: #ef4444;
+  --color-yellow-warning: #f59e0b;
+  --color-gray-light: #f8fafc;
+  --color-gray-lighter: #f1f5f9;
+  --color-navy: #0f172a;
+  --color-navy-light: #1e293b;
+  --color-navy-lighter: #334155;
+}
+
 @layer base {
   :root {
     /* Couleurs Charte Graphique */
