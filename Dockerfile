@@ -10,9 +10,11 @@ COPY apps/api ./apps/api
 
 RUN HUSKY=0 npm ci
 
+# Generate Prisma client
 RUN cd apps/api && DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 
-RUN cd apps/api && ./node_modules/.bin/nest build
+# Compile with SWC directly (bypasses @nestjs/cli wcwidth issue)
+RUN cd apps/api && npx swc src -d dist --copy-files --strip-leading-paths
 
 # ─── Stage 2: production ──────────────────────────────────────────────────────
 FROM node:22-alpine AS production
