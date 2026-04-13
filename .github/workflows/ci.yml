@@ -1,0 +1,168 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─── 1. Check branch ────────────────────────────────────────────────────────
+  check-branch:
+    name: Check branch origin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify PR comes from develop
+        run: |
+          if [ "${{ github.head_ref }}" != "develop" ] && \
+             [[ "${{ github.head_ref }}" != feature/* ]] && \
+             [[ "${{ github.head_ref }}" != fix/* ]] && \
+             [[ "${{ github.head_ref }}" != hotfix/* ]]; then
+            echo "❌ PR source branch '${{ github.head_ref }}' is not allowed."
+            echo "PRs to main must come from develop, feature/*, fix/*, or hotfix/* branches."
+            exit 1
+          fi
+          echo "✅ Branch '${{ github.head_ref }}' is allowed."
+
+  # ─── 2. Commitlint ──────────────────────────────────────────────────────────
+  check-commits:
+    name: Lint commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run commitlint
+        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+
+  # ─── 3. Lint ────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint & type-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Prettier
+        run: npm run format:check
+
+      - name: TypeScript
+        run: npx turbo run typecheck
+
+  # ─── 4. Test API ────────────────────────────────────────────────────────────
+  test-api:
+    name: API unit tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: freelanceflow_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/freelanceflow_test
+      JWT_SECRET: ci-test-secret
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: apps/api
+        run: npx prisma generate
+
+      - name: Run migrations
+        working-directory: apps/api
+        run: npx prisma migrate deploy
+
+      - name: Run tests
+        working-directory: apps/api
+        run: npm run test:cov
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: apps/api/coverage/
+
+  # ─── 5. Build ───────────────────────────────────────────────────────────────
+  build:
+    name: Build apps & Docker images
+    runs-on: ubuntu-latest
+    needs: [lint, test-api]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: apps/api
+        run: npx prisma generate
+
+      - name: Build all apps
+        run: npm run build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          target: production
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: freelanceflow/api:ci
+
+      - name: Build Web Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          target: production
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: freelanceflow/web:ci
