@@ -105,6 +105,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Set lowercase owner
+        run: echo "OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Build & push API image
         uses: docker/build-push-action@v6
         with:
@@ -115,8 +118,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ghcr.io/${{ github.repository_owner }}/freelanceflow-api:latest
-            ghcr.io/${{ github.repository_owner }}/freelanceflow-api:${{ needs.release.outputs.version }}
+            ghcr.io/${{ env.OWNER }}/freelanceflow-api:latest
+            ghcr.io/${{ env.OWNER }}/freelanceflow-api:${{ needs.release.outputs.version }}
 
       - name: Build & push Web image
         uses: docker/build-push-action@v6
@@ -128,8 +131,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ghcr.io/${{ github.repository_owner }}/freelanceflow-web:latest
-            ghcr.io/${{ github.repository_owner }}/freelanceflow-web:${{ needs.release.outputs.version }}
+            ghcr.io/${{ env.OWNER }}/freelanceflow-web:latest
+            ghcr.io/${{ env.OWNER }}/freelanceflow-web:${{ needs.release.outputs.version }}
 
   # ─── 3. Deploy API (Railway) ────────────────────────────────────────────────
   deploy-api:
