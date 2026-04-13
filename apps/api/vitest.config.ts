@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig({
   test: {
@@ -15,7 +16,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@freelanceflow/types': new URL('../../packages/types/src', import.meta.url).pathname,
+      '@freelanceflow/types': path.resolve(__dirname, '../../packages/types/src'),
     },
   },
 });

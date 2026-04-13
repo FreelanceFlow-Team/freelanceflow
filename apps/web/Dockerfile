@@ -23,6 +23,10 @@ CMD ["npm", "run", "dev"]
 FROM deps AS builder
 WORKDIR /app
 
+# NEXT_PUBLIC_* vars must be available at build time to be inlined by Next.js
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 COPY packages/types ./packages/types
 COPY apps/web ./apps/web
 
