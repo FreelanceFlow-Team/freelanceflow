@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { ClientsModule } from './clients/clients.module';
 import { ServicesModule } from './services/services.module';
 import { InvoicesModule } from './invoices/invoices.module';
+import { PdfModule } from './pdf/pdf.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { InvoicesModule } from './invoices/invoices.module';
     ClientsModule,
     ServicesModule,
     InvoicesModule,
+    PdfModule,
   ],
   controllers: [AppController],
   providers: [AppService],
