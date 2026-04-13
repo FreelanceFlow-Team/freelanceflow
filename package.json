@@ -13,7 +13,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md,yml}\"",
     "test": "turbo run test",
-    "prepare": "husky"
+    "prepare": "is-ci || husky"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
@@ -22,6 +22,7 @@
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.0",
     "husky": "^9.0.0",
+    "is-ci": "^4.1.0",
     "lint-staged": "^15.0.0",
     "prettier": "^3.0.0",
     "turbo": "^2.0.0",
