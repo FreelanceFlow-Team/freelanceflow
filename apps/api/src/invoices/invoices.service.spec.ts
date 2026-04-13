@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import type { PrismaService } from '../prisma/prisma.service';
 
@@ -106,9 +106,7 @@ describe('InvoicesService', () => {
       status: 'sent' as const,
     });
 
-    await expect(svc.remove('inv-1', 'user-1')).rejects.toThrow(
-      BadRequestException,
-    );
+    await expect(svc.remove('inv-1', 'user-1')).rejects.toThrow(BadRequestException);
     expect(prisma.invoice.delete).not.toHaveBeenCalled();
   });
 });

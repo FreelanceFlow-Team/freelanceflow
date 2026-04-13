@@ -1,13 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 
 describe('AppController', () => {
-  const appController = new AppController(new AppService());
+  const appController = new AppController();
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
-    });
+  it('check: returns ok status with timestamp', () => {
+    const result = appController.check();
+    expect(result.status).toBe('ok');
+    expect(typeof result.timestamp).toBe('string');
   });
 });

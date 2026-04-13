@@ -10,12 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '@freelanceflow/types';
@@ -55,11 +50,7 @@ export class ClientsController {
   @ApiOperation({ summary: 'Update a client' })
   @ApiResponse({ status: 200, description: 'Client updated' })
   @ApiResponse({ status: 404, description: 'Client not found' })
-  update(
-    @Param('id') id: string,
-    @Body() dto: UpdateClientDto,
-    @CurrentUser() user: JwtPayload,
-  ) {
+  update(@Param('id') id: string, @Body() dto: UpdateClientDto, @CurrentUser() user: JwtPayload) {
     return this.clientsService.update(id, user.sub, dto);
   }
 

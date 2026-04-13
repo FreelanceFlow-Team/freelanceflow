@@ -4,31 +4,46 @@ Application de gestion d'activité freelance — facturation, clients, services.
 
 ## Stack
 
-| Couche          | Technologie                   |
-| --------------- | ----------------------------- |
-| Frontend        | Next.js 16, React, TypeScript |
-| Backend         | NestJS 11, TypeScript         |
-| Base de données | PostgreSQL 17, Prisma ORM     |
-| Build           | Turborepo, npm workspaces     |
-| Tests           | Vitest                        |
-| CI/CD           | GitHub Actions                |
-| Déploiement     | Vercel (web) · Railway (api)  |
-| Conteneurs      | Docker, Docker Compose        |
-
-## Équipe
-
-| Rôle      | Responsabilité                                          |
-| --------- | ------------------------------------------------------- |
-| Fullstack | `apps/api` + `apps/web`                                 |
-| DevOps    | `.github/workflows`, `docker-compose.yml`, `Dockerfile` |
-| Shared    | `packages/types`                                        |
+| Couche          | Technologie                                      |
+| --------------- | ------------------------------------------------ |
+| Frontend        | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
+| Backend         | NestJS 11, TypeScript, Passport JWT              |
+| Base de données | PostgreSQL 17, Prisma ORM 6                      |
+| Validation      | class-validator, class-transformer               |
+| Types partagés  | `@freelanceflow/types` (packages/types)          |
+| Build           | Turborepo, npm workspaces                        |
+| Tests           | Vitest, autocannon (load)                        |
+| Documentation   | Swagger / OpenAPI (`/api/docs`)                  |
+| CI/CD           | GitHub Actions (ci.yml + cd.yml)                 |
+| Déploiement     | Vercel (web) · Railway (api)                     |
+| Conteneurs      | Docker, Docker Compose                           |
 
 ## URLs
 
-| Environnement | Frontend                         | API                                      |
-| ------------- | -------------------------------- | ---------------------------------------- |
-| Production    | https://freelanceflow.vercel.app | https://api.freelanceflow.up.railway.app |
-| Local         | http://localhost:3000            | http://localhost:3001                    |
+| Environnement | Frontend                         | API                                      | Swagger                                           |
+| ------------- | -------------------------------- | ---------------------------------------- | ------------------------------------------------- |
+| Production    | https://freelanceflow.vercel.app | https://api.freelanceflow.up.railway.app | https://api.freelanceflow.up.railway.app/api/docs |
+| Local         | http://localhost:3000            | http://localhost:3001                    | http://localhost:3001/api/docs                    |
+
+## API — Endpoints
+
+| Méthode  | Route                      | Auth | Description                     |
+| -------- | -------------------------- | ---- | ------------------------------- |
+| `GET`    | `/api/health`              |      | Health check                    |
+| `POST`   | `/api/auth/register`       |      | Inscription                     |
+| `POST`   | `/api/auth/login`          |      | Connexion → JWT                 |
+| `GET`    | `/api/clients`             | JWT  | Liste des clients               |
+| `POST`   | `/api/clients`             | JWT  | Créer un client                 |
+| `PATCH`  | `/api/clients/:id`         | JWT  | Modifier un client              |
+| `DELETE` | `/api/clients/:id`         | JWT  | Supprimer un client             |
+| `GET`    | `/api/services`            | JWT  | Liste des services              |
+| `POST`   | `/api/services`            | JWT  | Créer un service                |
+| `PATCH`  | `/api/services/:id`        | JWT  | Modifier un service             |
+| `DELETE` | `/api/services/:id`        | JWT  | Supprimer un service            |
+| `GET`    | `/api/invoices`            | JWT  | Liste des factures              |
+| `POST`   | `/api/invoices`            | JWT  | Créer une facture (calcul auto) |
+| `PATCH`  | `/api/invoices/:id/status` | JWT  | Changer le statut               |
+| `DELETE` | `/api/invoices/:id`        | JWT  | Supprimer (draft uniquement)    |
 
 ## Démarrage local
 
@@ -53,7 +68,15 @@ cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.local.example apps/web/.env.local
 ```
 
-Éditer `apps/api/.env` : renseigner `JWT_SECRET` et `DATABASE_URL`.
+Variables requises dans `apps/api/.env` :
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/freelanceflow_dev"
+JWT_SECRET="<secret-long-et-aléatoire>"
+PORT=3001
+FRONTEND_URL="http://localhost:3000"
+NODE_ENV="development"
+```
 
 ### Démarrage avec Docker
 
@@ -71,7 +94,7 @@ docker compose up db
 
 # Terminal 2 — API
 cd apps/api
-npx prisma migrate dev
+npx prisma migrate dev --name init
 npm run dev
 
 # Terminal 3 — Frontend
@@ -82,14 +105,22 @@ npm run dev
 ### Commandes utiles
 
 ```bash
-npm run build          # Build toutes les apps (Turborepo)
+# Monorepo (racine)
+npm run build          # Build toutes les apps via Turborepo
 npm run lint           # ESLint sur tout le monorepo
 npm run format:check   # Vérification Prettier
-npm run test           # Tests Vitest (API)
+npm run test           # Tests unitaires Vitest
+
+# API uniquement
+cd apps/api
+npm run typecheck      # Vérification TypeScript
+npm run test:cov       # Tests + coverage
+npm run test:load      # Tests de charge autocannon (serveur requis)
 
 # Prisma
-npx prisma migrate dev   # Créer une migration
-npx prisma studio        # Interface graphique base de données
+npx prisma migrate dev --name <nom>   # Créer une migration
+npx prisma studio                     # Interface graphique DB
+npx prisma generate                   # Régénérer le client Prisma
 ```
 
 ## Structure du monorepo
@@ -97,18 +128,61 @@ npx prisma studio        # Interface graphique base de données
 ```
 freelanceflow/
 ├── apps/
-│   ├── api/          # Backend NestJS
-│   └── web/          # Frontend Next.js
+│   ├── api/                    # Backend NestJS 11
+│   │   ├── src/
+│   │   │   ├── auth/           # Register, Login, JWT strategy
+│   │   │   ├── clients/        # CRUD clients
+│   │   │   ├── services/       # CRUD services (prestations)
+│   │   │   ├── invoices/       # CRUD factures + numérotation FF-YYYY-NNN
+│   │   │   ├── pdf/            # Génération PDF (@react-pdf/renderer)
+│   │   │   ├── prisma/         # PrismaService + PrismaModule (@Global)
+│   │   │   └── common/         # Guards, decorators, filters
+│   │   └── prisma/
+│   │       └── schema.prisma   # User, Client, Service, Invoice, InvoiceLine
+│   └── web/                    # Frontend Next.js 16
 ├── packages/
-│   └── types/        # Types TypeScript partagés
+│   └── types/                  # Types TypeScript partagés (@freelanceflow/types)
+│       └── src/
+│           ├── auth.types.ts
+│           ├── client.types.ts
+│           ├── service.types.ts
+│           └── invoice.types.ts
 ├── .github/
-│   └── workflows/    # CI (ci.yml) + CD (cd.yml)
-├── docker-compose.yml
+│   └── workflows/
+│       ├── ci.yml              # check-branch, commitlint, lint, test, build
+│       └── cd.yml              # release semver, GHCR, Railway, Vercel
+├── docker-compose.yml          # db (postgres:17), api, web
 └── turbo.json
 ```
 
 ## Conventions
 
-- Commits : [Conventional Commits](https://www.conventionalcommits.org/) (`feat`, `fix`, `chore`, `ci`, `docs`…)
-- Branches : `feature/<nom>` et `fix/<nom>` → `develop` → `main`
-- PRs : toujours vers `main` depuis `develop` ou une branche feature
+### Commits
+
+Format [Conventional Commits](https://www.conventionalcommits.org/) strict :
+
+```
+<type>: <sujet en minuscules>
+```
+
+Types autorisés : `feat`, `fix`, `chore`, `test`, `docs`, `ci`, `refactor`, `style`, `perf`, `revert`
+
+### Branches
+
+```
+main          ← production (tags releases automatiques)
+develop       ← branche de développement principale
+feature/<nom> ← nouvelle fonctionnalité
+fix/<nom>     ← correction de bug
+hotfix/<nom>  ← correctif urgent sur prod
+```
+
+Les PRs vers `main` doivent venir de `develop`, `feature/*`, `fix/*` ou `hotfix/*`.
+
+### Secrets GitHub requis
+
+| Secret          | Usage                    |
+| --------------- | ------------------------ |
+| `RAILWAY_TOKEN` | Déploiement API          |
+| `VERCEL_TOKEN`  | Déploiement Web          |
+| `GITHUB_TOKEN`  | Automatique (GHCR, tags) |

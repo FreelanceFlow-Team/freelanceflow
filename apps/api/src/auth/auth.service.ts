@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  ConflictException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import type { AuthResponse, JwtPayload } from '@freelanceflow/types';

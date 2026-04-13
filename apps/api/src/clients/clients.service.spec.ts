@@ -58,9 +58,7 @@ describe('ClientsService', () => {
     const { service, prisma } = buildService();
     vi.mocked(prisma.client.findFirst).mockResolvedValue(null);
 
-    await expect(service.findOne('unknown-id', 'user-1')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(service.findOne('unknown-id', 'user-1')).rejects.toThrow(NotFoundException);
   });
 
   // 3. findOne — throws NotFoundException when client belongs to another user
@@ -69,9 +67,7 @@ describe('ClientsService', () => {
     // findFirst with { id, userId } returns null if user doesn't own the client
     vi.mocked(prisma.client.findFirst).mockResolvedValue(null);
 
-    await expect(service.findOne('client-1', 'other-user')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(service.findOne('client-1', 'other-user')).rejects.toThrow(NotFoundException);
 
     expect(prisma.client.findFirst).toHaveBeenCalledWith({
       where: { id: 'client-1', userId: 'other-user' },

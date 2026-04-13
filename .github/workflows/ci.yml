@@ -135,7 +135,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Cache Prisma generated client
+        id: cache-prisma
+        uses: actions/cache@v4
+        with:
+          path: apps/api/generated
+          key: prisma-${{ hashFiles('apps/api/prisma/schema.prisma') }}
+
       - name: Generate Prisma client
+        if: steps.cache-prisma.outputs.cache-hit != 'true'
         working-directory: apps/api
         run: npx prisma generate
 

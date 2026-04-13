@@ -31,10 +31,7 @@ export interface InvoiceData {
 
 @Injectable()
 export class PdfService {
-  async generateInvoicePdf(
-    invoice: InvoiceData,
-    issuerName: string,
-  ): Promise<Buffer> {
+  async generateInvoicePdf(invoice: InvoiceData, issuerName: string): Promise<Buffer> {
     const element = React.createElement(InvoiceTemplate, {
       invoice,
       issuerName,

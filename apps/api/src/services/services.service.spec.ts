@@ -57,9 +57,7 @@ describe('ServicesService', () => {
     const { svc, prisma } = buildService();
     vi.mocked(prisma.service.findFirst).mockResolvedValue(null);
 
-    await expect(svc.findOne('unknown-id', 'user-1')).rejects.toThrow(
-      NotFoundException,
-    );
+    await expect(svc.findOne('unknown-id', 'user-1')).rejects.toThrow(NotFoundException);
   });
 
   // 3. create — returns created service

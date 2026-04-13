@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateInvoiceDto, UpdateInvoiceStatusDto } from './dto/invoice.dto';
 
@@ -31,10 +27,7 @@ export class InvoicesService {
     const number = await this.generateNumber(userId);
     const taxRate = dto.taxRate ?? 0;
 
-    const subtotal = dto.lines.reduce(
-      (sum, l) => sum + l.quantity * l.unitPrice,
-      0,
-    );
+    const subtotal = dto.lines.reduce((sum, l) => sum + l.quantity * l.unitPrice, 0);
     const taxAmount = Math.round(subtotal * taxRate) / 100;
     const total = subtotal + taxAmount;
 

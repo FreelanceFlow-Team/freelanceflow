@@ -10,12 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { JwtPayload } from '@freelanceflow/types';
@@ -70,7 +65,8 @@ export class InvoicesController {
   @HttpCode(HttpStatus.NOT_IMPLEMENTED)
   @ApiOperation({ summary: 'Download invoice as PDF' })
   @ApiResponse({ status: 501, description: 'Not yet implemented' })
-  getPdf(@Param('id') _id: string) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getPdf(@Param('id') id: string) {
     return { message: 'PDF generation not yet implemented' };
   }
 

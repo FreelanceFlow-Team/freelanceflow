@@ -123,8 +123,8 @@ describe('AuthService', () => {
     const { service, prisma } = buildService();
     vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser);
 
-    await expect(
-      service.login({ email: mockUser.email, password: 'wrong' }),
-    ).rejects.toThrow(UnauthorizedException);
+    await expect(service.login({ email: mockUser.email, password: 'wrong' })).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 });
