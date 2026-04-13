@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserRole {
+  freelancer
+  admin
+}
+
+enum InvoiceStatus {
+  draft
+  sent
+  paid
+  overdue
+  cancelled
+}
+
+enum ServiceUnit {
+  hour
+  day
+  flat
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         UserRole  @default(freelancer)
+  refreshToken String?
+
+  clients  Client[]
+  services Service[]
+  invoices Invoice[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Client {
+  id        String  @id @default(cuid())
+  userId    String
+  name      String
+  email     String
+  phone     String?
+  address   String?
+  vatNumber String?
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("clients")
+}
+
+model Service {
+  id          String      @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  defaultRate Decimal     @db.Decimal(10, 2)
+  unit        ServiceUnit
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("services")
+}
+
+model Invoice {
+  id        String        @id @default(cuid())
+  userId    String
+  clientId  String
+  number    String
+  status    InvoiceStatus @default(draft)
+  issueDate DateTime
+  dueDate   DateTime
+  taxRate   Decimal       @default(0) @db.Decimal(5, 2)
+  taxAmount Decimal       @default(0) @db.Decimal(10, 2)
+  subtotal  Decimal       @default(0) @db.Decimal(10, 2)
+  total     Decimal       @default(0) @db.Decimal(10, 2)
+  notes     String?
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client Client        @relation(fields: [clientId], references: [id])
+  lines  InvoiceLine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, number])
+  @@map("invoices")
+}
+
+model InvoiceLine {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Decimal @db.Decimal(10, 2)
+  unitPrice   Decimal @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@map("invoice_lines")
+}
