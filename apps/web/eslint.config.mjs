@@ -1,17 +1,45 @@
-import { defineConfig, globalIgnores } from 'eslint/config';
-import nextVitals from 'eslint-config-next/core-web-vitals';
-import nextTs from 'eslint-config-next/typescript';
+import js from '@eslint/js';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
+export default [
+  js.configs.recommended,
   {
+    files: ['**/*.{ts,tsx}'],
+    plugins: { '@typescript-eslint': tsPlugin },
+    languageOptions: {
+      parser: tsParser,
+      globals: {
+        // Browser globals
+        window: 'readonly',
+        document: 'readonly',
+        localStorage: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+        Blob: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        Headers: 'readonly',
+        FormData: 'readonly',
+        // Node globals
+        process: 'readonly',
+        console: 'readonly',
+        Buffer: 'readonly',
+        // TypeScript globals
+        RequestInit: 'readonly',
+        HeadersInit: 'readonly',
+        React: 'readonly',
+      },
+    },
     rules: {
-      'react/react-in-jsx-scope': 'off',
+      ...tsPlugin.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'warn',
       'no-undef': 'off',
+      'react/react-in-jsx-scope': 'off',
     },
   },
-  globalIgnores(['.next/', 'out/', 'build/**', 'next-env.d.ts']),
-]);
-
-export default eslintConfig;
+  {
+    ignores: ['/node_modules/', '/dist/', '/.next/', '/generated/'],
+  },
+];
