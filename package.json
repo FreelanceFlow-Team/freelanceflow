@@ -13,7 +13,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md,yml}\"",
     "test": "turbo run test",
-    "prepare": "husky"
+    "prepare": "node -e \"if(!require('is-ci'))require('child_process').execSync('husky',{stdio:'inherit'})\""
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",
