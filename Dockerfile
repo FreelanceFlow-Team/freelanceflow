@@ -28,7 +28,7 @@ COPY package.json package-lock.json ./
 COPY packages/types/package.json ./packages/types/package.json
 COPY apps/api/package.json ./apps/api/package.json
 
-RUN HUSKY=0 npm ci --workspace=@freelanceflow/api --include-workspace-root --omit=dev
+RUN npm ci --workspace=@freelanceflow/api --include-workspace-root --omit=dev --ignore-scripts
 
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/generated ./apps/api/generated
