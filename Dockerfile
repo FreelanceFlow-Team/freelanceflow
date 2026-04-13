@@ -10,10 +10,10 @@ COPY apps/api ./apps/api
 
 RUN HUSKY=0 npm ci
 
-# Generate Prisma client
+# Generate Prisma client into apps/api/node_modules/.prisma/client
 RUN cd apps/api && DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 
-# Build with nest from root node_modules (all deps in same place)
+# Build with nest from root node_modules
 RUN cd apps/api && node /app/node_modules/@nestjs/cli/bin/nest.js build
 
 # ─── Stage 2: production ──────────────────────────────────────────────────────
@@ -29,11 +29,13 @@ COPY apps/api/package.json ./apps/api/package.json
 
 RUN npm ci --omit=dev --ignore-scripts
 
+# Copy built app
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
 COPY apps/api/prisma ./apps/api/prisma
 
-# Create non-root user before chown
+# Copy Prisma generated client (overwrites any empty .prisma from npm ci)
+COPY --from=builder /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
+
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app/apps/api
