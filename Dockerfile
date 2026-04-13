@@ -30,12 +30,14 @@ COPY apps/api/package.json ./apps/api/package.json
 RUN npm ci --omit=dev --ignore-scripts
 
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/generated ./apps/api/generated
+COPY --from=builder /app/apps/api/node_modules/.prisma ./apps/api/node_modules/.prisma
 COPY apps/api/prisma ./apps/api/prisma
+
+# Create non-root user before chown
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app/apps/api
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
 EXPOSE 3001
