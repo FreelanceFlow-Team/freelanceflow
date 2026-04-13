@@ -16,7 +16,7 @@
     "prepare": "node -e \"if(!require('is-ci'))require('child_process').execSync('husky',{stdio:'inherit'})\""
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.0.0",
+    "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^19.0.0",
     "@nestjs/cli": "^11.0.0",
     "@swc/cli": "^0.6.0",
