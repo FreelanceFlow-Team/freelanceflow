@@ -10,14 +10,11 @@ COPY apps/api ./apps/api
 
 RUN HUSKY=0 npm ci
 
-# Fix missing wcwidth dep needed by ora (used by @nestjs/cli)
-RUN npm install wcwidth --prefix /app
-
 # Generate Prisma client
 RUN cd apps/api && DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
 
-# Build with nest (uses SWC under the hood via nest-cli.json)
-RUN cd apps/api && npx nest build
+# Build with nest from root node_modules (all deps in same place)
+RUN cd apps/api && node /app/node_modules/@nestjs/cli/bin/nest.js build
 
 # ─── Stage 2: production ──────────────────────────────────────────────────────
 FROM node:22-alpine AS production
