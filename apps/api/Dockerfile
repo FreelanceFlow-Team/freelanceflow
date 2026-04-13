@@ -6,7 +6,7 @@ COPY package.json package-lock.json ./
 COPY packages/types/package.json ./packages/types/package.json
 COPY apps/api/package.json ./apps/api/package.json
 
-RUN npm ci --workspace=@freelanceflow/api --include-workspace-root
+RUN HUSKY=0 npm ci --workspace=@freelanceflow/api --include-workspace-root
 
 # ─── Stage 2: development ─────────────────────────────────────────────────────
 FROM deps AS development
@@ -38,7 +38,7 @@ COPY package.json package-lock.json ./
 COPY packages/types/package.json ./packages/types/package.json
 COPY apps/api/package.json ./apps/api/package.json
 
-RUN npm ci --workspace=@freelanceflow/api --include-workspace-root --omit=dev
+RUN HUSKY=0 npm ci --workspace=@freelanceflow/api --include-workspace-root --omit=dev
 
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/generated ./apps/api/generated
