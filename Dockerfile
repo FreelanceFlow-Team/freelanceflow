@@ -8,17 +8,7 @@ COPY apps/api/package.json ./apps/api/package.json
 
 RUN HUSKY=0 npm ci --workspace=@freelanceflow/api --include-workspace-root
 
-# ─── Stage 2: development ─────────────────────────────────────────────────────
-FROM deps AS development
-WORKDIR /app
-
-COPY packages/types ./packages/types
-COPY apps/api ./apps/api
-
-WORKDIR /app/apps/api
-CMD ["npm", "run", "dev"]
-
-# ─── Stage 3: builder ─────────────────────────────────────────────────────────
+# ─── Stage 2: builder ─────────────────────────────────────────────────────────
 FROM deps AS builder
 WORKDIR /app
 
@@ -26,9 +16,9 @@ COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
 WORKDIR /app/apps/api
-RUN npm run build
+RUN npx prisma generate && npm run build
 
-# ─── Stage 4: production ──────────────────────────────────────────────────────
+# ─── Stage 3: production ──────────────────────────────────────────────────────
 FROM node:22-alpine AS production
 WORKDIR /app
 
