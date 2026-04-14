@@ -61,8 +61,10 @@ COPY --from=builder /app/packages/types ./packages/types
 
 # Copy Prisma schema and startup script
 COPY apps/api/prisma ./apps/api/prisma
-COPY scripts/start.sh ./apps/api/start.sh
-RUN chmod +x ./apps/api/start.sh
+COPY scripts/start.sh ./start.sh
+
+# Fix line endings (Windows to Unix)
+RUN sed -i 's/\r$//' ./start.sh && chmod +x ./start.sh
 
 # Non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
@@ -71,4 +73,4 @@ USER appuser
 WORKDIR /app/apps/api
 EXPOSE 3001
 
-CMD ["./start.sh"]
+CMD ["sh", "/app/start.sh"]
