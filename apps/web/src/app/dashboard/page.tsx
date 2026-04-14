@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useInvoices } from '@/features/invoices/hooks/use-invoices';
 import { formatCurrency, formatDateShort } from '@/lib/utils';
-import { FileText, TrendingUp, Clock, AlertCircle, Plus } from 'lucide-react';
+import { FileText, TrendingUp, Clock, AlertCircle, Plus, BarChart3, Calendar } from 'lucide-react';
 
 const statusLabels: Record<string, string> = {
   draft: 'Brouillon',
@@ -21,6 +21,12 @@ const statusColors: Record<string, string> = {
   cancelled: 'bg-gray-100 text-gray-500',
 };
 
+// Utility function to get month label
+const getMonthLabel = (date: string | Date): string => {
+  const d = new Date(date);
+  return d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+};
+
 export default function DashboardPage() {
   const { data: invoices = [] } = useInvoices('');
 
@@ -31,6 +37,41 @@ export default function DashboardPage() {
   const pendingInvoices = invoices.filter((inv) => inv.status === 'sent').length;
   const overdueInvoices = invoices.filter((inv) => inv.status === 'overdue').length;
   const totalInvoices = invoices.length;
+
+  // Calcul du chiffre d'affaires par client
+  const revenueByClient = invoices
+    .filter((inv) => inv.status === 'paid')
+    .reduce(
+      (acc, inv) => {
+        const clientName = inv.client?.name ?? 'Non renseigné';
+        acc[clientName] = (acc[clientName] || 0) + Number(inv.total);
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+  const topClients = Object.entries(revenueByClient)
+    .map(([name, revenue]) => ({ name, revenue }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5);
+
+  // Calcul du chiffre d'affaires par mois
+  const revenueByMonth = invoices
+    .filter((inv) => inv.status === 'paid')
+    .reduce(
+      (acc, inv) => {
+        const monthKey = getMonthLabel(inv.issueDate);
+        acc[monthKey] = (acc[monthKey] || 0) + Number(inv.total);
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+
+  const monthlyRevenue = Object.entries(revenueByMonth)
+    .map(([month, revenue]) => ({ month, revenue }))
+    .sort((a, b) => new Date(b.month).getTime() - new Date(a.month).getTime())
+    .slice(0, 6)
+    .reverse();
 
   const recentInvoices = invoices.slice(0, 5);
 
@@ -91,6 +132,81 @@ export default function DashboardPage() {
           <p className="text-2xl font-bold text-slate-900">{totalInvoices}</p>
           <p className="text-sm text-slate-500 mt-1">Total factures</p>
         </div>
+      </div>
+
+      {/* Revenue by Client */}
+      <div className="bg-white rounded-xl border border-slate-200 mb-8">
+        <div className="p-6 pb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <BarChart3 size={20} className="text-indigo-600" />
+            <h2 className="text-lg font-semibold text-slate-900">Chiffre d'affaires par client</h2>
+          </div>
+          <p className="text-sm text-slate-500">Top 5 des clients</p>
+        </div>
+
+        {topClients.length === 0 ? (
+          <div className="text-center py-8 px-6">
+            <p className="text-slate-500">Aucune facture payée pour le moment</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {topClients.map((client, index) => (
+              <div key={index} className="p-6 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-medium text-slate-900">{client.name}</p>
+                  <p className="font-semibold text-slate-900">{formatCurrency(client.revenue)}</p>
+                </div>
+                <div className="w-full bg-slate-200 rounded-full h-2">
+                  <div
+                    className="bg-indigo-600 h-2 rounded-full"
+                    style={{
+                      width: `${(client.revenue / (topClients[0]?.revenue || 1)) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Monthly Revenue */}
+      <div className="bg-white rounded-xl border border-slate-200 mb-8">
+        <div className="p-6 pb-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Calendar size={20} className="text-emerald-600" />
+            <h2 className="text-lg font-semibold text-slate-900">Chiffre d'affaires par mois</h2>
+          </div>
+          <p className="text-sm text-slate-500">Les 6 derniers mois</p>
+        </div>
+
+        {monthlyRevenue.length === 0 ? (
+          <div className="text-center py-8 px-6">
+            <p className="text-slate-500">Aucune facture payée pour le moment</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100 px-6 pb-6">
+            {monthlyRevenue.map((item, index) => {
+              const maxRevenue = Math.max(...monthlyRevenue.map((m) => m.revenue));
+              return (
+                <div key={index} className="py-4 first:pt-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium text-slate-700 capitalize">{item.month}</p>
+                    <p className="font-semibold text-slate-900">{formatCurrency(item.revenue)}</p>
+                  </div>
+                  <div className="w-full bg-slate-200 rounded-full h-2.5">
+                    <div
+                      className="bg-emerald-600 h-2.5 rounded-full transition-all"
+                      style={{
+                        width: `${(item.revenue / (maxRevenue || 1)) * 100}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Recent Invoices */}
