@@ -3,11 +3,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 
+export type ServiceUnit = 'hour' | 'day' | 'flat';
+
 export interface Service {
   id: string;
   name: string;
   description?: string;
-  hourlyRate: number;
+  defaultRate: number;
+  unit: ServiceUnit;
   createdAt: string;
   updatedAt: string;
 }

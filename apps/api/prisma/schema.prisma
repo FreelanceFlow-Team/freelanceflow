@@ -55,13 +55,16 @@ model User {
 }
 
 model Client {
-  id        String  @id @default(cuid())
-  userId    String
-  name      String
-  email     String
-  phone     String?
-  address   String?
-  vatNumber String?
+  id         String  @id @default(cuid())
+  userId     String
+  name       String
+  email      String
+  phone      String?
+  address    String?
+  city       String?
+  postalCode String?
+  country    String?
+  vatNumber  String?
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   invoices Invoice[]

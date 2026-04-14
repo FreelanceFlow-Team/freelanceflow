@@ -11,7 +11,8 @@ import { ArrowLeft } from 'lucide-react';
 const serviceSchema = z.object({
   name: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
   description: z.string().optional(),
-  hourlyRate: z.number().positive('Le tarif horaire doit être supérieur à 0'),
+  defaultRate: z.number().positive('Le tarif doit être supérieur à 0'),
+  unit: z.enum(['hour', 'day', 'flat']),
 });
 
 type ServiceFormData = z.infer<typeof serviceSchema>;
@@ -26,12 +27,13 @@ export default function NewServicePage() {
   } = useForm<ServiceFormData>({
     resolver: zodResolver(serviceSchema),
     defaultValues: {
-      hourlyRate: 50,
+      defaultRate: 50,
+      unit: 'hour',
     },
   });
 
   const onSubmit = (data: ServiceFormData) => {
-    createService(data as any, {
+    createService(data, {
       onSuccess: () => {
         router.push('/dashboard/services');
       },
@@ -83,23 +85,37 @@ export default function NewServicePage() {
             )}
           </div>
 
-          <div>
-            <label htmlFor="hourlyRate" className="label-text">
-              Tarif horaire (€)*
-            </label>
-            <input
-              {...register('hourlyRate', { valueAsNumber: true })}
-              type="number"
-              id="hourlyRate"
-              placeholder="50"
-              step="0.01"
-              min="0"
-              className="input-field"
-              disabled={isPending}
-            />
-            {errors.hourlyRate && (
-              <p className="text-red-error text-sm mt-1">{errors.hourlyRate.message}</p>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="defaultRate" className="label-text">
+                Tarif par défaut (€)*
+              </label>
+              <input
+                {...register('defaultRate', { valueAsNumber: true })}
+                type="number"
+                id="defaultRate"
+                placeholder="50"
+                step="0.01"
+                min="0"
+                className="input-field"
+                disabled={isPending}
+              />
+              {errors.defaultRate && (
+                <p className="text-red-error text-sm mt-1">{errors.defaultRate.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="unit" className="label-text">
+                Unité*
+              </label>
+              <select {...register('unit')} id="unit" className="input-field" disabled={isPending}>
+                <option value="hour">Heure</option>
+                <option value="day">Jour</option>
+                <option value="flat">Forfait</option>
+              </select>
+              {errors.unit && <p className="text-red-error text-sm mt-1">{errors.unit.message}</p>}
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4">

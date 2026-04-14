@@ -67,7 +67,8 @@ export default function ServicesPage() {
               )}
               <div className="bg-blue-primary bg-opacity-10 rounded-lg p-3 mb-4">
                 <p className="text-blue-primary font-bold text-lg">
-                  {formatCurrency(service.hourlyRate)} / h
+                  {formatCurrency(service.defaultRate)} /{' '}
+                  {service.unit === 'hour' ? 'h' : service.unit === 'day' ? 'j' : 'forfait'}
                 </p>
               </div>
               <button
