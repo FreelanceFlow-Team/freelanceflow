@@ -44,19 +44,19 @@ export default function NewServicePage() {
     <div>
       <Link
         href="/dashboard/services"
-        className="flex items-center text-blue-primary hover:text-blue-dark mb-6"
+        className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 text-sm font-medium"
       >
-        <ArrowLeft size={20} className="mr-2" />
+        <ArrowLeft size={18} />
         Retour aux services
       </Link>
 
-      <div className="card bg-white max-w-2xl">
-        <h1 className="text-2xl font-bold text-navy mb-6">Créer un nouveau service</h1>
+      <div className="bg-white rounded-xl border border-slate-200 p-6 max-w-2xl">
+        <h1 className="text-xl font-bold text-slate-900 mb-6">Nouveau service</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label htmlFor="name" className="label-text">
-              Nom du service*
+              Nom du service *
             </label>
             <input
               {...register('name')}
@@ -66,7 +66,7 @@ export default function NewServicePage() {
               className="input-field"
               disabled={isPending}
             />
-            {errors.name && <p className="text-red-error text-sm mt-1">{errors.name.message}</p>}
+            {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>}
           </div>
 
           <div>
@@ -81,14 +81,14 @@ export default function NewServicePage() {
               disabled={isPending}
             />
             {errors.description && (
-              <p className="text-red-error text-sm mt-1">{errors.description.message}</p>
+              <p className="text-red-600 text-sm mt-1">{errors.description.message}</p>
             )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="defaultRate" className="label-text">
-                Tarif par défaut (€)*
+                Tarif par défaut (€) *
               </label>
               <input
                 {...register('defaultRate', { valueAsNumber: true })}
@@ -101,20 +101,20 @@ export default function NewServicePage() {
                 disabled={isPending}
               />
               {errors.defaultRate && (
-                <p className="text-red-error text-sm mt-1">{errors.defaultRate.message}</p>
+                <p className="text-red-600 text-sm mt-1">{errors.defaultRate.message}</p>
               )}
             </div>
 
             <div>
               <label htmlFor="unit" className="label-text">
-                Unité*
+                Unité *
               </label>
               <select {...register('unit')} id="unit" className="input-field" disabled={isPending}>
                 <option value="hour">Heure</option>
                 <option value="day">Jour</option>
                 <option value="flat">Forfait</option>
               </select>
-              {errors.unit && <p className="text-red-error text-sm mt-1">{errors.unit.message}</p>}
+              {errors.unit && <p className="text-red-600 text-sm mt-1">{errors.unit.message}</p>}
             </div>
           </div>
 

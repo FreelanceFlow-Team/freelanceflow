@@ -8,20 +8,22 @@ import {
   useUpdateInvoiceStatus,
 } from '@/features/invoices/hooks/use-invoices';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Download, Plus, ArrowLeft } from 'lucide-react';
+import { Download, ArrowLeft, FileText } from 'lucide-react';
 
-const statusLabels = {
+const statusLabels: Record<string, string> = {
   draft: 'Brouillon',
   sent: 'Envoyée',
   paid: 'Payée',
   overdue: 'Retard',
+  cancelled: 'Annulée',
 };
 
-const statusColors = {
-  draft: 'bg-gray-lighter text-navy',
-  sent: 'bg-blue-primary bg-opacity-20 text-blue-primary',
-  paid: 'bg-green-success bg-opacity-20 text-green-success',
-  overdue: 'bg-red-error bg-opacity-20 text-red-error',
+const statusColors: Record<string, string> = {
+  draft: 'bg-slate-100 text-slate-700',
+  sent: 'bg-blue-100 text-blue-700',
+  paid: 'bg-emerald-100 text-emerald-700',
+  overdue: 'bg-red-100 text-red-700',
+  cancelled: 'bg-gray-100 text-gray-500',
 };
 
 export default function InvoiceDetailPage(props: { params: Promise<{ id: string }> }) {
@@ -31,13 +33,18 @@ export default function InvoiceDetailPage(props: { params: Promise<{ id: string 
   const { mutate: updateStatus } = useUpdateInvoiceStatus();
 
   if (isLoading) {
-    return <div className="text-center py-8">Chargement de la facture...</div>;
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+      </div>
+    );
   }
 
   if (!invoice) {
     return (
-      <div className="card text-center py-12">
-        <p className="text-gray-light mb-4">Facture non trouvée</p>
+      <div className="bg-white rounded-xl border border-slate-200 text-center py-12 px-6">
+        <FileText className="w-10 h-10 mx-auto text-slate-300 mb-3" />
+        <p className="text-slate-500 mb-4">Facture non trouvée</p>
         <Link href="/dashboard/invoices" className="btn-primary inline-block">
           Retour aux factures
         </Link>
@@ -49,115 +56,155 @@ export default function InvoiceDetailPage(props: { params: Promise<{ id: string 
     <div>
       <Link
         href="/dashboard/invoices"
-        className="inline-flex items-center text-blue-primary hover:text-blue-dark mb-6"
+        className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 text-sm font-medium"
       >
-        <ArrowLeft size={20} className="mr-2" />
+        <ArrowLeft size={18} />
         Retour aux factures
       </Link>
 
-      <div className="card">
+      <div className="bg-white rounded-xl border border-slate-200 p-6">
         {/* Header */}
-        <div className="flex justify-between items-start mb-6 pb-6 border-b">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-6 pb-6 border-b border-slate-200">
           <div>
-            <h1 className="text-3xl font-bold text-navy mb-2">{invoice.invoiceNumber}</h1>
-            <p className="text-gray-light">Client: {invoice.clientName}</p>
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">{invoice.number}</h1>
+            <p className="text-slate-500">Client : {invoice.client?.name ?? '—'}</p>
           </div>
-          <div className="flex gap-2 items-start">
+          <div className="flex flex-wrap gap-2 items-start">
             <select
               value={invoice.status}
               onChange={(e) => updateStatus({ id: invoice.id, status: e.target.value })}
-              className={`px-4 py-2 rounded font-medium cursor-pointer border-0 ${
-                statusColors[invoice.status as keyof typeof statusColors]
+              className={`px-3 py-1.5 rounded-full text-sm font-semibold cursor-pointer border-0 ${
+                statusColors[invoice.status] ?? 'bg-slate-100 text-slate-700'
               }`}
             >
               <option value="draft">{statusLabels.draft}</option>
               <option value="sent">{statusLabels.sent}</option>
               <option value="paid">{statusLabels.paid}</option>
               <option value="overdue">{statusLabels.overdue}</option>
+              <option value="cancelled">{statusLabels.cancelled}</option>
             </select>
             <button
               onClick={() => downloadPdf(invoice.id)}
-              className="btn-secondary inline-flex items-center"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
             >
-              <Download size={20} className="mr-2" />
-              Télécharger PDF
+              <Download size={16} />
+              PDF
             </button>
           </div>
         </div>
 
         {/* Dates */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 pb-6 border-b">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 pb-6 border-b border-slate-200">
           <div>
-            <p className="text-sm text-gray-light">Date de facture</p>
-            <p className="font-bold text-navy">{formatDate(invoice.issueDate)}</p>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+              Date d'émission
+            </p>
+            <p className="font-medium text-slate-900">{formatDate(invoice.issueDate)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-light">Date d&apos;échéance</p>
-            <p className="font-bold text-navy">{formatDate(invoice.dueDate)}</p>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+              Échéance
+            </p>
+            <p className="font-medium text-slate-900">{formatDate(invoice.dueDate)}</p>
           </div>
-          <div className="md:col-span-2">
-            <p className="text-sm text-gray-light">Notes</p>
-            <p className="font-bold text-navy">{invoice.notes || '-'}</p>
-          </div>
+          {invoice.notes && (
+            <div className="sm:col-span-2">
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">
+                Notes
+              </p>
+              <p className="text-slate-700">{invoice.notes}</p>
+            </div>
+          )}
         </div>
 
         {/* Invoice Lines */}
         <div className="mb-6">
-          <h2 className="text-lg font-bold text-navy mb-4">Articles</h2>
-          <div className="overflow-x-auto">
+          <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wider mb-4">
+            Prestations
+          </h2>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-navy-light text-white">
-                <tr>
-                  <th className="px-4 py-2 text-left">Description</th>
-                  <th className="px-4 py-2 text-right">Quantité</th>
-                  <th className="px-4 py-2 text-right">Prix unitaire</th>
-                  <th className="px-4 py-2 text-right">Total</th>
+              <thead>
+                <tr className="bg-slate-50 border-y border-slate-200">
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    Description
+                  </th>
+                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    Quantité
+                  </th>
+                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    Prix unitaire
+                  </th>
+                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    Total
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-slate-100">
                 {invoice.lines.map((line) => (
-                  <tr key={line.id} className="hover:bg-gray-lighter">
-                    <td className="px-4 py-3">{line.description}</td>
-                    <td className="px-4 py-3 text-right">{line.quantity}</td>
-                    <td className="px-4 py-3 text-right">{formatCurrency(line.unitPrice)}</td>
-                    <td className="px-4 py-3 text-right font-bold text-navy">
-                      {formatCurrency(line.total)}
+                  <tr key={line.id}>
+                    <td className="px-4 py-3 text-slate-900">{line.description}</td>
+                    <td className="px-4 py-3 text-right text-slate-600">{Number(line.quantity)}</td>
+                    <td className="px-4 py-3 text-right text-slate-600">
+                      {formatCurrency(Number(line.unitPrice))}
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium text-slate-900">
+                      {formatCurrency(Number(line.total))}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          {/* Mobile cards */}
+          <div className="sm:hidden space-y-3">
+            {invoice.lines.map((line) => (
+              <div key={line.id} className="bg-slate-50 rounded-lg p-3">
+                <p className="font-medium text-slate-900 mb-2">{line.description}</p>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">
+                    {Number(line.quantity)} x {formatCurrency(Number(line.unitPrice))}
+                  </span>
+                  <span className="font-semibold text-slate-900">
+                    {formatCurrency(Number(line.total))}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Totals */}
         <div className="flex justify-end mb-6">
-          <div className="w-full md:w-80 bg-gray-lighter p-6 rounded-lg">
-            <div className="flex justify-between mb-3">
-              <span className="text-gray-light">Sous-total HT</span>
-              <span className="font-bold text-navy">{formatCurrency(invoice.subtotal)}</span>
+          <div className="w-full sm:w-80 bg-slate-50 rounded-xl p-5 space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-500">Sous-total HT</span>
+              <span className="font-medium text-slate-900">
+                {formatCurrency(Number(invoice.subtotal))}
+              </span>
             </div>
-            <div className="flex justify-between mb-3 pb-3 border-b">
-              <span className="text-gray-light">TVA (20%)</span>
-              <span className="font-bold text-navy">{formatCurrency(invoice.taxAmount)}</span>
+            <div className="flex justify-between text-sm pb-3 border-b border-slate-200">
+              <span className="text-slate-500">TVA ({Number(invoice.taxRate)}%)</span>
+              <span className="font-medium text-slate-900">
+                {formatCurrency(Number(invoice.taxAmount))}
+              </span>
             </div>
             <div className="flex justify-between">
-              <span className="font-bold text-navy">Total TTC</span>
-              <span className="font-bold text-lg text-blue-primary">
-                {formatCurrency(invoice.totalAmount)}
+              <span className="font-semibold text-slate-900">Total TTC</span>
+              <span className="font-bold text-lg text-indigo-600">
+                {formatCurrency(Number(invoice.total))}
               </span>
             </div>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-4 border-t">
+        <div className="flex gap-3 pt-4 border-t border-slate-200">
           <Link href="/dashboard/invoices" className="btn-secondary">
             Retour
-          </Link>
-          <Link href={`/dashboard/invoices/${invoice.id}/edit`} className="btn-primary">
-            <Plus size={20} className="mr-2 inline" />
-            Modifier
           </Link>
         </div>
       </div>

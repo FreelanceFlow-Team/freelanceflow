@@ -57,51 +57,57 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-navy to-navy-light flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="card bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-navy mb-2">FreelanceFlow</h1>
-          <p className="text-gray-light mb-6">Créer votre compte</p>
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-indigo-600 mb-1">FreelanceFlow</h1>
+          <p className="text-slate-500 text-sm">Créez votre compte gratuitement</p>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+          <h2 className="text-xl font-bold text-slate-900 mb-6">Inscription</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-100 border border-red-error text-red-error rounded-md text-sm">
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                 {error}
               </div>
             )}
 
-            <div>
-              <label htmlFor="firstName" className="label-text">
-                Prénom
-              </label>
-              <input
-                {...registerField('firstName')}
-                type="text"
-                id="firstName"
-                placeholder="Jean"
-                className="input-field"
-                disabled={isPending}
-              />
-              {errors.firstName && (
-                <p className="text-red-error text-sm mt-1">{errors.firstName.message}</p>
-              )}
-            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="firstName" className="label-text">
+                  Prénom
+                </label>
+                <input
+                  {...registerField('firstName')}
+                  type="text"
+                  id="firstName"
+                  placeholder="Jean"
+                  className="input-field"
+                  disabled={isPending}
+                />
+                {errors.firstName && (
+                  <p className="text-red-600 text-sm mt-1">{errors.firstName.message}</p>
+                )}
+              </div>
 
-            <div>
-              <label htmlFor="lastName" className="label-text">
-                Nom
-              </label>
-              <input
-                {...registerField('lastName')}
-                type="text"
-                id="lastName"
-                placeholder="Dupont"
-                className="input-field"
-                disabled={isPending}
-              />
-              {errors.lastName && (
-                <p className="text-red-error text-sm mt-1">{errors.lastName.message}</p>
-              )}
+              <div>
+                <label htmlFor="lastName" className="label-text">
+                  Nom
+                </label>
+                <input
+                  {...registerField('lastName')}
+                  type="text"
+                  id="lastName"
+                  placeholder="Dupont"
+                  className="input-field"
+                  disabled={isPending}
+                />
+                {errors.lastName && (
+                  <p className="text-red-600 text-sm mt-1">{errors.lastName.message}</p>
+                )}
+              </div>
             </div>
 
             <div>
@@ -116,9 +122,7 @@ export default function RegisterPage() {
                 className="input-field"
                 disabled={isPending}
               />
-              {errors.email && (
-                <p className="text-red-error text-sm mt-1">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
             </div>
 
             <div>
@@ -129,40 +133,40 @@ export default function RegisterPage() {
                 {...registerField('password')}
                 type="password"
                 id="password"
-                placeholder="••••••••"
+                placeholder="Min. 8 caractères"
                 className="input-field"
                 disabled={isPending}
               />
               {errors.password && (
-                <p className="text-red-error text-sm mt-1">{errors.password.message}</p>
+                <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>
               )}
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="label-text">
-                Confirmez le mot de passe
+                Confirmer le mot de passe
               </label>
               <input
                 {...registerField('confirmPassword')}
                 type="password"
                 id="confirmPassword"
-                placeholder="••••••••"
+                placeholder="Retapez votre mot de passe"
                 className="input-field"
                 disabled={isPending}
               />
               {errors.confirmPassword && (
-                <p className="text-red-error text-sm mt-1">{errors.confirmPassword.message}</p>
+                <p className="text-red-600 text-sm mt-1">{errors.confirmPassword.message}</p>
               )}
             </div>
 
-            <button type="submit" disabled={isPending} className="btn-primary w-full mt-6">
+            <button type="submit" disabled={isPending} className="btn-primary w-full mt-2">
               {isPending ? 'Création du compte...' : "S'inscrire"}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-light">
+          <div className="mt-6 text-center text-sm text-slate-500">
             Déjà inscrit ?{' '}
-            <Link href="/login" className="text-blue-primary hover:text-blue-dark font-medium">
+            <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
               Se connecter
             </Link>
           </div>

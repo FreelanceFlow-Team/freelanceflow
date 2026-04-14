@@ -17,7 +17,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Vérifier l'authentification
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('authToken');
       if (!token) {
@@ -38,7 +37,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">Chargement...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
@@ -52,25 +55,32 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { label: 'Factures', href: '/dashboard/invoices', icon: FileText },
   ];
 
+  const isActive = (href: string) => {
+    if (href === '/dashboard') return pathname === '/dashboard';
+    return pathname.startsWith(href);
+  };
+
   return (
-    <div className="flex h-screen bg-gray-light">
+    <div className="flex h-screen bg-slate-50">
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex w-64 bg-navy text-white flex-col">
-        <div className="p-6 border-b border-navy-light">
-          <h1 className="text-xl font-bold">FreelanceFlow</h1>
+      <aside className="hidden lg:flex w-64 bg-white border-r border-slate-200 flex-col">
+        <div className="p-6">
+          <h1 className="text-xl font-bold text-indigo-600">FreelanceFlow</h1>
         </div>
 
-        <nav className="flex-1 p-4">
+        <nav className="flex-1 px-3">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const active = isActive(item.href);
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
-                  isActive ? 'bg-blue-primary text-white' : 'text-gray-lighter hover:bg-navy-light'
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm font-medium transition-colors ${
+                  active
+                    ? 'bg-indigo-50 text-indigo-700'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
                 <Icon size={20} />
@@ -80,66 +90,89 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           })}
         </nav>
 
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 m-4 rounded-lg bg-red-error text-white hover:bg-red-600 transition-colors w-[calc(100%-2rem)]"
-        >
-          <LogOut size={20} />
-          <span>Déconnexion</span>
-        </button>
-      </aside>
-
-      {/* Sidebar Mobile Toggle */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-navy text-white"
-      >
-        {isOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
-
-      {/* Sidebar Mobile */}
-      {isOpen && (
-        <aside className="fixed inset-0 z-40 w-64 bg-navy text-white md:hidden">
-          <div className="p-6 border-b border-navy-light mt-12">
-            <h1 className="text-xl font-bold">FreelanceFlow</h1>
-          </div>
-
-          <nav className="p-4">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
-                    isActive
-                      ? 'bg-blue-primary text-white'
-                      : 'text-gray-lighter hover:bg-navy-light'
-                  }`}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
+        <div className="p-3 border-t border-slate-200">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 m-4 rounded-lg bg-red-error text-white hover:bg-red-600 transition-colors w-[calc(100%-2rem)]"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-700 transition-colors w-full"
           >
             <LogOut size={20} />
             <span>Déconnexion</span>
           </button>
-        </aside>
+        </div>
+      </aside>
+
+      {/* Mobile header bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+        <h1 className="text-lg font-bold text-indigo-600">FreelanceFlow</h1>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
+        >
+          {isOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </div>
+
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/30 z-40"
+          onClick={() => setIsOpen(false)}
+        />
       )}
+
+      {/* Sidebar Mobile */}
+      <aside
+        className={`lg:hidden fixed top-0 left-0 bottom-0 z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-200 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="p-6 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-indigo-600">FreelanceFlow</h1>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <nav className="px-3">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.href);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-1 text-sm font-medium transition-colors ${
+                  active
+                    ? 'bg-indigo-50 text-indigo-700'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-slate-200">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-700 transition-colors w-full"
+          >
+            <LogOut size={20} />
+            <span>Déconnexion</span>
+          </button>
+        </div>
+      </aside>
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
-        <div className="p-6 md:p-8">{children}</div>
+        <div className="p-4 pt-16 lg:pt-0 lg:p-8 max-w-7xl mx-auto">{children}</div>
       </main>
     </div>
   );

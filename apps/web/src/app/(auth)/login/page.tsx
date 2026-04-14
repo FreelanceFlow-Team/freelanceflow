@@ -41,15 +41,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-navy to-navy-light flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="card bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-navy mb-2">FreelanceFlow</h1>
-          <p className="text-gray-light mb-6">Gestion de facturation pour freelances</p>
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-indigo-600 mb-1">FreelanceFlow</h1>
+          <p className="text-slate-500 text-sm">Gestion de facturation pour freelances</p>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+          <h2 className="text-xl font-bold text-slate-900 mb-6">Connexion</h2>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-100 border border-red-error text-red-error rounded-md text-sm">
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                 {error}
               </div>
             )}
@@ -66,9 +70,7 @@ export default function LoginPage() {
                 className="input-field"
                 disabled={isPending}
               />
-              {errors.email && (
-                <p className="text-red-error text-sm mt-1">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
             </div>
 
             <div>
@@ -79,23 +81,23 @@ export default function LoginPage() {
                 {...register('password')}
                 type="password"
                 id="password"
-                placeholder="••••••••"
+                placeholder="Votre mot de passe"
                 className="input-field"
                 disabled={isPending}
               />
               {errors.password && (
-                <p className="text-red-error text-sm mt-1">{errors.password.message}</p>
+                <p className="text-red-600 text-sm mt-1">{errors.password.message}</p>
               )}
             </div>
 
-            <button type="submit" disabled={isPending} className="btn-primary w-full mt-6">
+            <button type="submit" disabled={isPending} className="btn-primary w-full mt-2">
               {isPending ? 'Connexion en cours...' : 'Se connecter'}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-light">
+          <div className="mt-6 text-center text-sm text-slate-500">
             Pas encore inscrit ?{' '}
-            <Link href="/register" className="text-blue-primary hover:text-blue-dark font-medium">
+            <Link href="/register" className="text-indigo-600 hover:text-indigo-700 font-medium">
               Créer un compte
             </Link>
           </div>

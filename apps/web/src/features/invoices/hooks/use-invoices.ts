@@ -6,23 +6,36 @@ import { api } from '@/lib/api-client';
 export interface InvoiceLine {
   id: string;
   description: string;
-  quantity: number;
-  unitPrice: number;
-  total: number;
+  quantity: string | number;
+  unitPrice: string | number;
+  total: string | number;
+}
+
+export interface InvoiceClient {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  vatNumber?: string;
 }
 
 export interface Invoice {
   id: string;
-  invoiceNumber: string;
+  number: string;
   clientId: string;
-  clientName: string;
-  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  client: InvoiceClient;
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
   issueDate: string;
   dueDate: string;
   lines: InvoiceLine[];
-  subtotal: number;
-  taxAmount: number;
-  totalAmount: number;
+  subtotal: string | number;
+  taxRate: string | number;
+  taxAmount: string | number;
+  total: string | number;
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -100,7 +113,7 @@ export function useDownloadPdf() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `invoice-${invoiceId}.pdf`;
+      link.download = `facture-${invoiceId}.pdf`;
       link.click();
       window.URL.revokeObjectURL(url);
     },

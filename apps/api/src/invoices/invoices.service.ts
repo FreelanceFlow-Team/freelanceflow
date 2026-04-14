@@ -73,6 +73,14 @@ export class InvoicesService {
     return this.prisma.invoice.delete({ where: { id } });
   }
 
+  async getIssuerName(userId: string): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { firstName: true, lastName: true },
+    });
+    return user ? `${user.firstName} ${user.lastName}`.trim() : 'FreelanceFlow';
+  }
+
   // ─── Numérotation FF-YYYY-NNN ────────────────────────────────────────────
 
   async generateNumber(userId: string): Promise<string> {

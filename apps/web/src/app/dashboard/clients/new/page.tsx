@@ -43,20 +43,20 @@ export default function NewClientPage() {
     <div>
       <Link
         href="/dashboard/clients"
-        className="flex items-center text-blue-primary hover:text-blue-dark mb-6"
+        className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 text-sm font-medium"
       >
-        <ArrowLeft size={20} className="mr-2" />
+        <ArrowLeft size={18} />
         Retour aux clients
       </Link>
 
-      <div className="card bg-white max-w-2xl">
-        <h1 className="text-2xl font-bold text-navy mb-6">Créer un nouveau client</h1>
+      <div className="bg-white rounded-xl border border-slate-200 p-6 max-w-2xl">
+        <h1 className="text-xl font-bold text-slate-900 mb-6">Nouveau client</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="name" className="label-text">
-                Nom*
+                Nom *
               </label>
               <input
                 {...register('name')}
@@ -66,12 +66,12 @@ export default function NewClientPage() {
                 className="input-field"
                 disabled={isPending}
               />
-              {errors.name && <p className="text-red-error text-sm mt-1">{errors.name.message}</p>}
+              {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>}
             </div>
 
             <div>
               <label htmlFor="email" className="label-text">
-                Email*
+                Email *
               </label>
               <input
                 {...register('email')}
@@ -81,9 +81,7 @@ export default function NewClientPage() {
                 className="input-field"
                 disabled={isPending}
               />
-              {errors.email && (
-                <p className="text-red-error text-sm mt-1">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
             </div>
 
             <div>

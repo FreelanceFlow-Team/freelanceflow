@@ -34,7 +34,6 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
     values: client
@@ -62,31 +61,42 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
   };
 
   if (isLoadingClient) {
-    return <div className="text-center py-8">Chargement du client...</div>;
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+      </div>
+    );
   }
 
   if (!client) {
-    return <div className="text-center py-8">Client non trouvé</div>;
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 text-center py-12 px-6">
+        <p className="text-slate-500 mb-4">Client non trouvé</p>
+        <Link href="/dashboard/clients" className="btn-primary inline-block">
+          Retour aux clients
+        </Link>
+      </div>
+    );
   }
 
   return (
     <div>
       <Link
         href="/dashboard/clients"
-        className="flex items-center text-blue-primary hover:text-blue-dark mb-6"
+        className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 text-sm font-medium"
       >
-        <ArrowLeft size={20} className="mr-2" />
+        <ArrowLeft size={18} />
         Retour aux clients
       </Link>
 
-      <div className="card bg-white max-w-2xl">
-        <h1 className="text-2xl font-bold text-navy mb-6">Éditer {client.name}</h1>
+      <div className="bg-white rounded-xl border border-slate-200 p-6 max-w-2xl">
+        <h1 className="text-xl font-bold text-slate-900 mb-6">Éditer {client.name}</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="name" className="label-text">
-                Nom*
+                Nom *
               </label>
               <input
                 {...register('name')}
@@ -96,12 +106,12 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
                 className="input-field"
                 disabled={isPending}
               />
-              {errors.name && <p className="text-red-error text-sm mt-1">{errors.name.message}</p>}
+              {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>}
             </div>
 
             <div>
               <label htmlFor="email" className="label-text">
-                Email*
+                Email *
               </label>
               <input
                 {...register('email')}
@@ -111,9 +121,7 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
                 className="input-field"
                 disabled={isPending}
               />
-              {errors.email && (
-                <p className="text-red-error text-sm mt-1">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>}
             </div>
 
             <div>
