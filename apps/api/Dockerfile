@@ -59,8 +59,10 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/generated ./apps/api/generated
 COPY --from=builder /app/packages/types ./packages/types
 
-# Copy Prisma schema (needed for migrate deploy at runtime)
+# Copy Prisma schema and startup script
 COPY apps/api/prisma ./apps/api/prisma
+COPY scripts/start.sh ./apps/api/start.sh
+RUN chmod +x ./apps/api/start.sh
 
 # Non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
@@ -69,5 +71,4 @@ USER appuser
 WORKDIR /app/apps/api
 EXPOSE 3001
 
-# Run migrations then start
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["./start.sh"]
