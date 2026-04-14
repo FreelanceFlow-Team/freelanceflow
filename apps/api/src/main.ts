@@ -1,10 +1,31 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { execSync } from 'child_process';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
+function syncDatabase() {
+  console.log('=== Syncing database schema ===');
+  for (let attempt = 1; attempt <= 30; attempt++) {
+    try {
+      execSync('npx prisma db push --skip-generate --accept-data-loss', {
+        stdio: 'inherit',
+        timeout: 30000,
+      });
+      console.log('=== Database synced ===');
+      return;
+    } catch {
+      console.log(`Database not ready (attempt ${attempt}/30), retrying in 2s...`);
+      execSync('sleep 2');
+    }
+  }
+  throw new Error('Failed to sync database after 30 attempts');
+}
+
 async function bootstrap() {
+  syncDatabase();
+
   const app = await NestFactory.create(AppModule);
 
   // Global prefix
