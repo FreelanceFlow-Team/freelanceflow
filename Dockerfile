@@ -37,6 +37,8 @@ RUN cd apps/api && npm run build
 FROM node:22-alpine AS production
 WORKDIR /app
 
+# Cache buster - change to force rebuild
+ARG CACHE_BUST=v2
 ENV NODE_ENV=production
 
 # Copy manifests
@@ -73,5 +75,5 @@ USER appuser
 WORKDIR /app/apps/api
 EXPOSE 3001
 
-# Sync schema to DB then start
-CMD ["sh", "-c", "npx prisma db push --skip-generate --accept-data-loss && node dist/main"]
+# v2: Sync schema to DB then start
+CMD ["sh", "-c", "echo 'Running prisma db push...' && npx prisma db push --skip-generate --accept-data-loss 2>&1 && echo 'DB sync done' && node dist/main"]
