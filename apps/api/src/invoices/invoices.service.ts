@@ -81,6 +81,24 @@ export class InvoicesService {
     return user ? `${user.firstName} ${user.lastName}`.trim() : 'FreelanceFlow';
   }
 
+  async getUserWithLogo(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        logo: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé');
+    }
+
+    return user;
+  }
+
   // ─── Numérotation FF-YYYY-NNN ────────────────────────────────────────────
 
   async generateNumber(userId: string): Promise<string> {

@@ -6,9 +6,18 @@ import { ClientsModule } from './clients/clients.module';
 import { ServicesModule } from './services/services.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { PdfModule } from './pdf/pdf.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, ClientsModule, ServicesModule, InvoicesModule, PdfModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    ClientsModule,
+    ServicesModule,
+    InvoicesModule,
+    PdfModule,
+    UsersModule,
+  ],
   controllers: [AppController],
   providers: [],
 })

@@ -23,6 +23,7 @@ export interface AuthResponse {
     email: string;
     firstName: string;
     lastName: string;
+    logo?: string | null;
     role: string;
   };
 }

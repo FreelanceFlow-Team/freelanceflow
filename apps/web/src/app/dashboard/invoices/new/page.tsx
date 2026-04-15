@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,8 +29,23 @@ type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 
 export default function NewInvoicePage() {
   const router = useRouter();
+  const [logo, setLogo] = useState<string | null>(null);
   const { data: clients = [] } = useClients('');
   const { mutate: createInvoice, isPending } = useCreateInvoice();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const rawUser = localStorage.getItem('user');
+    if (!rawUser) return;
+
+    try {
+      const user = JSON.parse(rawUser) as { logo?: string | null };
+      setLogo(user.logo ?? null);
+    } catch {
+      setLogo(null);
+    }
+  }, []);
 
   const {
     control,
@@ -79,6 +95,19 @@ export default function NewInvoicePage() {
 
       <div className="bg-white rounded-xl border border-slate-200 p-6">
         <h1 className="text-xl font-bold text-slate-900 mb-6">Nouvelle facture</h1>
+
+        {logo ? (
+          <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+              Logo utilisé dans le PDF
+            </p>
+            <img
+              src={logo}
+              alt="Logo de facture"
+              className="h-16 w-16 rounded-lg border border-slate-200 bg-white p-1 object-contain"
+            />
+          </div>
+        ) : null}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Client Selection */}

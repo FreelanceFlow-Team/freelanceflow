@@ -73,6 +73,7 @@ export class InvoicesController {
   @ApiResponse({ status: 404, description: 'Invoice not found' })
   async getPdf(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Res() res: Response) {
     const invoice = await this.invoicesService.findOne(id, user.sub);
+    const userWithLogo = await this.invoicesService.getUserWithLogo(user.sub);
 
     const pdfData = {
       number: invoice.number,
@@ -98,8 +99,12 @@ export class InvoicesController {
       },
     };
 
-    const issuerName = await this.invoicesService.getIssuerName(user.sub);
-    const buffer = await this.pdfService.generateInvoicePdf(pdfData, issuerName);
+    const issuerName = `${userWithLogo.firstName} ${userWithLogo.lastName}`.trim();
+    const buffer = await this.pdfService.generateInvoicePdf(
+      pdfData,
+      issuerName || 'FreelanceFlow',
+      userWithLogo.logo || undefined,
+    );
 
     res.set({
       'Content-Type': 'application/pdf',

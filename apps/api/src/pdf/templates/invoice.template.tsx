@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
   page: {
@@ -12,6 +12,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 32,
+  },
+  headerContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 16,
+  },
+  logoContainer: {
+    width: 72,
+    height: 72,
+  },
+  logo: {
+    width: 72,
+    height: 72,
+    objectFit: 'contain',
   },
   title: {
     fontSize: 24,
@@ -96,6 +111,7 @@ interface InvoiceTemplateProps {
     };
   };
   issuerName: string;
+  logo?: string;
 }
 
 function fmt(amount: number): string {
@@ -106,17 +122,24 @@ function fmtDate(date: Date): string {
   return new Date(date).toLocaleDateString('fr-FR');
 }
 
-export function InvoiceTemplate({ invoice, issuerName }: InvoiceTemplateProps) {
+export function InvoiceTemplate({ invoice, issuerName, logo }: InvoiceTemplateProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>FACTURE</Text>
-            <Text style={{ marginTop: 4, fontSize: 12 }}>{invoice.number}</Text>
-            <View style={[styles.badge, { marginTop: 8 }]}>
-              <Text>{invoice.status.toUpperCase()}</Text>
+          <View style={styles.headerContent}>
+            {logo ? (
+              <View style={styles.logoContainer}>
+                <Image src={logo} style={styles.logo} />
+              </View>
+            ) : null}
+
+            <View>
+              <Text style={styles.title}>FACTURE</Text>
+              <Text style={{ marginTop: 4, fontSize: 12 }}>{invoice.number}</Text>
+              <View style={[styles.badge, { marginTop: 8 }]}>
+                <Text>{invoice.status.toUpperCase()}</Text>
+              </View>
             </View>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
@@ -126,16 +149,14 @@ export function InvoiceTemplate({ invoice, issuerName }: InvoiceTemplateProps) {
           </View>
         </View>
 
-        {/* Client */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Facturé à</Text>
           <Text style={{ fontFamily: 'Helvetica-Bold' }}>{invoice.client.name}</Text>
           <Text>{invoice.client.email}</Text>
-          {invoice.client.address && <Text>{invoice.client.address}</Text>}
-          {invoice.client.vatNumber && <Text>TVA : {invoice.client.vatNumber}</Text>}
+          {invoice.client.address ? <Text>{invoice.client.address}</Text> : null}
+          {invoice.client.vatNumber ? <Text>TVA : {invoice.client.vatNumber}</Text> : null}
         </View>
 
-        {/* Lines */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Prestations</Text>
           <View style={styles.tableHeader}>
@@ -154,7 +175,6 @@ export function InvoiceTemplate({ invoice, issuerName }: InvoiceTemplateProps) {
           ))}
         </View>
 
-        {/* Totals */}
         <View>
           <View style={styles.totalsRow}>
             <Text style={styles.totalsLabel}>Sous-total HT</Text>
@@ -170,13 +190,12 @@ export function InvoiceTemplate({ invoice, issuerName }: InvoiceTemplateProps) {
           </View>
         </View>
 
-        {/* Notes */}
-        {invoice.notes && (
+        {invoice.notes ? (
           <View style={[styles.section, { marginTop: 24 }]}>
             <Text style={styles.sectionTitle}>Notes</Text>
             <Text>{invoice.notes}</Text>
           </View>
-        )}
+        ) : null}
       </Page>
     </Document>
   );
