@@ -27,7 +27,12 @@ function buildPinoTransports() {
   if (process.env.LOGTAIL_TOKEN) {
     targets.push({
       target: '@logtail/pino',
-      options: { sourceToken: process.env.LOGTAIL_TOKEN },
+      options: {
+        sourceToken: process.env.LOGTAIL_TOKEN,
+        options: {
+          endpoint: process.env.LOGTAIL_ENDPOINT || 'https://s2364879.eu-fsn-3.betterstackdata.com',
+        },
+      },
       level: 'info',
     });
   }
