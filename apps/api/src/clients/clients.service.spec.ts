@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NotFoundException } from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import type { PrismaService } from '../prisma/prisma.service';
+import type { CacheService } from '../cache/cache.service';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -20,6 +21,13 @@ const mockClient = {
   updatedAt: new Date(),
 };
 
+const mockCache = {
+  get: vi.fn().mockResolvedValue(null),
+  set: vi.fn().mockResolvedValue(undefined),
+  del: vi.fn().mockResolvedValue(undefined),
+  invalidatePattern: vi.fn().mockResolvedValue(undefined),
+} as unknown as CacheService;
+
 function buildService() {
   const prisma = {
     client: {
@@ -31,7 +39,7 @@ function buildService() {
     },
   } as unknown as PrismaService;
 
-  return { service: new ClientsService(prisma), prisma };
+  return { service: new ClientsService(prisma, mockCache), prisma };
 }
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
@@ -53,7 +61,7 @@ describe('ClientsService', () => {
       orderBy: { createdAt: 'desc' },
     });
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe(mockClient.id);
+    expect((result[0] as typeof mockClient).id).toBe(mockClient.id);
   });
 
   // 2. findOne — throws NotFoundException when client does not exist

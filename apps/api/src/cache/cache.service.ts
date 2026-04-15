@@ -73,16 +73,16 @@ export class CacheService implements OnModuleInit {
   async invalidatePattern(pattern: string): Promise<void> {
     if (!this.enabled) return;
     try {
-      let cursor = 0;
+      let cursor: string | number = 0;
       do {
-        const result = await this.redis.scan(cursor, { match: pattern, count: 100 });
+        const result = await this.redis.scan(cursor as number, { match: pattern, count: 100 });
         cursor = result[0];
-        const keys = result[1];
+        const keys = result[1] as string[];
         if (keys.length > 0) {
           await this.redis.del(...keys);
           this.logger.debug(`Cache INVALIDATE: ${keys.length} keys matching "${pattern}"`);
         }
-      } while (cursor !== 0);
+      } while (cursor !== 0 && cursor !== '0');
     } catch (error) {
       this.logger.warn(`Cache INVALIDATE error for pattern "${pattern}": ${error}`);
     }

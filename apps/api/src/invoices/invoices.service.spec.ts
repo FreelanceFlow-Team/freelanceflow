@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BadRequestException } from '@nestjs/common';
 import { InvoicesService } from './invoices.service';
 import type { PrismaService } from '../prisma/prisma.service';
+import type { CacheService } from '../cache/cache.service';
+import type { PdfService } from '../pdf/pdf.service';
+import type { EmailService } from '../email/email.service';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -33,6 +36,21 @@ const mockInvoice = {
   lines: [mockLine],
 };
 
+const mockCache = {
+  get: vi.fn().mockResolvedValue(null),
+  set: vi.fn().mockResolvedValue(undefined),
+  del: vi.fn().mockResolvedValue(undefined),
+  invalidatePattern: vi.fn().mockResolvedValue(undefined),
+} as unknown as CacheService;
+
+const mockPdfService = {
+  generateInvoicePdf: vi.fn().mockResolvedValue(Buffer.from('pdf')),
+} as unknown as PdfService;
+
+const mockEmailService = {
+  sendInvoicePdf: vi.fn().mockResolvedValue(undefined),
+} as unknown as EmailService;
+
 function buildService() {
   const prisma = {
     invoice: {
@@ -42,9 +60,12 @@ function buildService() {
       update: vi.fn(),
       delete: vi.fn(),
     },
+    user: {
+      findUnique: vi.fn(),
+    },
   } as unknown as PrismaService;
 
-  return { svc: new InvoicesService(prisma), prisma };
+  return { svc: new InvoicesService(prisma, mockCache, mockPdfService, mockEmailService), prisma };
 }
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
