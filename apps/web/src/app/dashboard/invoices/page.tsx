@@ -10,8 +10,9 @@ import {
   useSendInvoiceEmail,
   type Invoice,
 } from '@/features/invoices/hooks/use-invoices';
-import { Trash2, Download, Plus, Eye, FileText, Mail } from 'lucide-react';
+import { Trash2, Download, Plus, Eye, FileText, Mail, FileDown } from 'lucide-react';
 import { formatCurrency, formatDateShort } from '@/lib/utils';
+import { exportToCsv } from '@/lib/csv-export';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-slate-100 text-slate-700',
@@ -84,13 +85,54 @@ export default function InvoicesPage() {
             {invoices.length} facture{invoices.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <Link
-          href="/dashboard/invoices/new"
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-        >
-          <Plus size={18} />
-          Nouvelle facture
-        </Link>
+        <div className="flex items-center gap-2">
+          {invoices.length > 0 && (
+            <button
+              onClick={() => {
+                const statusLabelsMap: Record<string, string> = {
+                  draft: 'Brouillon',
+                  sent: 'Envoyée',
+                  paid: 'Payée',
+                  overdue: 'Retard',
+                  cancelled: 'Annulée',
+                };
+                const rows = invoices.map((inv) => ({
+                  number: inv.number,
+                  client: inv.client?.name ?? '',
+                  status: statusLabelsMap[inv.status] ?? inv.status,
+                  issueDate: formatDateShort(inv.issueDate),
+                  dueDate: formatDateShort(inv.dueDate),
+                  subtotal: Number(inv.subtotal).toFixed(2),
+                  taxRate: Number(inv.taxRate).toFixed(2),
+                  taxAmount: Number(inv.taxAmount).toFixed(2),
+                  total: Number(inv.total).toFixed(2),
+                }));
+                exportToCsv('factures.csv', rows, [
+                  { key: 'number', label: 'N° Facture' },
+                  { key: 'client', label: 'Client' },
+                  { key: 'status', label: 'Statut' },
+                  { key: 'issueDate', label: "Date d'émission" },
+                  { key: 'dueDate', label: "Date d'échéance" },
+                  { key: 'subtotal', label: 'Sous-total (€)' },
+                  { key: 'taxRate', label: 'Taux TVA (%)' },
+                  { key: 'taxAmount', label: 'Montant TVA (€)' },
+                  { key: 'total', label: 'Total (€)' },
+                ]);
+              }}
+              className="inline-flex items-center gap-2 border border-slate-300 text-slate-700 px-4 py-2.5 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+            >
+              <FileDown size={18} />
+              <span className="hidden sm:inline">Exporter CSV</span>
+            </button>
+          )}
+          <Link
+            href="/dashboard/invoices/new"
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+          >
+            <Plus size={18} />
+            Nouvelle facture
+          </Link>
+        </div>
       </div>
 
       {invoices.length === 0 ? (
