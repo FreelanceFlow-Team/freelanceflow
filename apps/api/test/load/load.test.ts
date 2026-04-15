@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import autocannon from 'autocannon';
 
-const API_URL = process.env.LOAD_TEST_URL ?? 'http://localhost:3001';
+const API_URL = process.env.LOAD_TEST_URL ?? 'http://localhost:3010';
 const DURATION = 15;
 const CONNECTIONS = 10;
 

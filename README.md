@@ -23,7 +23,7 @@ Application de gestion d'activité freelance — facturation, clients, services.
 | Environnement | Frontend                         | API                                      | Swagger                                           |
 | ------------- | -------------------------------- | ---------------------------------------- | ------------------------------------------------- |
 | Production    | https://freelanceflow.vercel.app | https://api.freelanceflow.up.railway.app | https://api.freelanceflow.up.railway.app/api/docs |
-| Local         | http://localhost:3000            | http://localhost:3001                    | http://localhost:3001/api/docs                    |
+| Local         | http://localhost:3000            | http://localhost:3010                    | http://localhost:3010/api/docs                    |
 
 ## API — Endpoints
 
@@ -73,7 +73,7 @@ Variables requises dans `apps/api/.env` :
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/freelanceflow_dev"
 JWT_SECRET="<secret-long-et-aléatoire>"
-PORT=3001
+PORT=3010
 FRONTEND_URL="http://localhost:3000"
 NODE_ENV="development"
 ```
@@ -84,7 +84,7 @@ NODE_ENV="development"
 docker compose up
 ```
 
-Lance PostgreSQL, l'API (port 3001) et le frontend (port 3000).
+Lance PostgreSQL, l'API (port 3010) et le frontend (port 3000).
 
 ### Démarrage sans Docker
 
