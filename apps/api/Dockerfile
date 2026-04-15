@@ -2,6 +2,7 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
+# Copy manifests first (layer cache)
 COPY package.json package-lock.json ./
 COPY packages/types/package.json ./packages/types/package.json
 COPY apps/api/package.json ./apps/api/package.json
@@ -14,6 +15,7 @@ RUN node -e "\
   delete p.scripts.prepare;\
   fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
 
+# Copy source
 COPY packages/types ./packages/types
 COPY apps/api ./apps/api
 
@@ -21,12 +23,15 @@ COPY apps/api ./apps/api
 RUN mkdir -p apps/web/src && echo '{}' > apps/web/tsconfig.json
 
 # Install all deps (dev included — needed for SWC + Prisma CLI)
-RUN npm ci
+# Use --legacy-peer-deps to avoid npm 10.x exit handler bug
+RUN npm ci --legacy-peer-deps --no-audit --prefer-offline
 
+# Generate Prisma client (dummy URL just for codegen)
 RUN cd apps/api && \
     DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
     npx prisma generate
 
+# Compile with SWC (avoids @nestjs/cli / ora / wcwidth issues entirely)
 RUN cd apps/api && npm run build
 
 # ─── Stage 2: production ───────────────────────────────────────────────────────
@@ -59,16 +64,22 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/generated ./apps/api/generated
 COPY --from=builder /app/packages/types ./packages/types
 
-# Copy Prisma schema and startup script
+# Copy Prisma schema (needed for db push at runtime)
 COPY apps/api/prisma ./apps/api/prisma
-COPY scripts/start.sh ./apps/api/start.sh
-RUN chmod +x ./apps/api/start.sh
+COPY scripts/start.sh ./start.sh
+
+# Fix line endings (Windows to Unix)
+RUN sed -i 's/\r$//' ./start.sh && chmod +x ./start.sh
 
 # Non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Set proper permissions for the entire app directory
+RUN chown -R appuser:appgroup /app
+
 USER appuser
 
 WORKDIR /app/apps/api
-EXPOSE 3001
+EXPOSE 3010
 
-CMD ["./start.sh"]
+CMD ["sh", "/app/start.sh"]

@@ -7,10 +7,12 @@ import {
   useDeleteInvoice,
   useUpdateInvoiceStatus,
   useDownloadPdf,
+  useSendInvoiceEmail,
   type Invoice,
 } from '@/features/invoices/hooks/use-invoices';
-import { Trash2, Download, Plus, Eye, FileText } from 'lucide-react';
+import { Trash2, Download, Plus, Eye, FileText, Mail, FileDown } from 'lucide-react';
 import { formatCurrency, formatDateShort } from '@/lib/utils';
+import { exportToCsv } from '@/lib/csv-export';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-slate-100 text-slate-700',
@@ -33,12 +35,26 @@ export default function InvoicesPage() {
   const { mutate: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
   const { mutate: updateStatus } = useUpdateInvoiceStatus();
   const { mutate: downloadPdf } = useDownloadPdf();
+  const { mutate: sendInvoiceEmail, isPending: isSendingEmail } = useSendInvoiceEmail();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [sendingInvoiceId, setSendingInvoiceId] = useState<string | null>(null);
 
   const handleDelete = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setIsConfirming(true);
+  };
+
+  const handleSendEmail = (invoice: Invoice) => {
+    setSendingInvoiceId(invoice.id);
+    sendInvoiceEmail(invoice.id, {
+      onSuccess: () => {
+        setSendingInvoiceId(null);
+      },
+      onError: () => {
+        setSendingInvoiceId(null);
+      },
+    });
   };
 
   const confirmDelete = () => {
@@ -69,13 +85,54 @@ export default function InvoicesPage() {
             {invoices.length} facture{invoices.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <Link
-          href="/dashboard/invoices/new"
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-        >
-          <Plus size={18} />
-          Nouvelle facture
-        </Link>
+        <div className="flex items-center gap-2">
+          {invoices.length > 0 && (
+            <button
+              onClick={() => {
+                const statusLabelsMap: Record<string, string> = {
+                  draft: 'Brouillon',
+                  sent: 'Envoyée',
+                  paid: 'Payée',
+                  overdue: 'Retard',
+                  cancelled: 'Annulée',
+                };
+                const rows = invoices.map((inv) => ({
+                  number: inv.number,
+                  client: inv.client?.name ?? '',
+                  status: statusLabelsMap[inv.status] ?? inv.status,
+                  issueDate: formatDateShort(inv.issueDate),
+                  dueDate: formatDateShort(inv.dueDate),
+                  subtotal: Number(inv.subtotal).toFixed(2),
+                  taxRate: Number(inv.taxRate).toFixed(2),
+                  taxAmount: Number(inv.taxAmount).toFixed(2),
+                  total: Number(inv.total).toFixed(2),
+                }));
+                exportToCsv('factures.csv', rows, [
+                  { key: 'number', label: 'N° Facture' },
+                  { key: 'client', label: 'Client' },
+                  { key: 'status', label: 'Statut' },
+                  { key: 'issueDate', label: "Date d'émission" },
+                  { key: 'dueDate', label: "Date d'échéance" },
+                  { key: 'subtotal', label: 'Sous-total (€)' },
+                  { key: 'taxRate', label: 'Taux TVA (%)' },
+                  { key: 'taxAmount', label: 'Montant TVA (€)' },
+                  { key: 'total', label: 'Total (€)' },
+                ]);
+              }}
+              className="inline-flex items-center gap-2 border border-slate-300 text-slate-700 px-4 py-2.5 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+            >
+              <FileDown size={18} />
+              <span className="hidden sm:inline">Exporter CSV</span>
+            </button>
+          )}
+          <Link
+            href="/dashboard/invoices/new"
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+          >
+            <Plus size={18} />
+            Nouvelle facture
+          </Link>
+        </div>
       </div>
 
       {invoices.length === 0 ? (
@@ -156,6 +213,16 @@ export default function InvoicesPage() {
                           >
                             <Eye size={16} />
                           </Link>
+                          {invoice.status === 'draft' && (
+                            <button
+                              onClick={() => handleSendEmail(invoice)}
+                              disabled={isSendingEmail || sendingInvoiceId === invoice.id}
+                              className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Envoyer par email"
+                            >
+                              <Mail size={16} />
+                            </button>
+                          )}
                           <button
                             onClick={() => downloadPdf(invoice.id)}
                             className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -208,6 +275,15 @@ export default function InvoicesPage() {
                     >
                       <Eye size={18} />
                     </Link>
+                    {invoice.status === 'draft' && (
+                      <button
+                        onClick={() => handleSendEmail(invoice)}
+                        disabled={isSendingEmail || sendingInvoiceId === invoice.id}
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Mail size={18} />
+                      </button>
+                    )}
                     <button
                       onClick={() => downloadPdf(invoice.id)}
                       className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"

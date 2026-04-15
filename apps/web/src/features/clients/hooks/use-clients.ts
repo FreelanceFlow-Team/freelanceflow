@@ -24,6 +24,8 @@ export function useClients(userId: string) {
     queryFn: async () => {
       return api.get<Client[]>('/clients');
     },
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
   });
 }
 

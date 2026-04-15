@@ -1,14 +1,15 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import Link from 'next/link';
 import {
   useInvoice,
   useDownloadPdf,
   useUpdateInvoiceStatus,
+  useSendInvoiceEmail,
 } from '@/features/invoices/hooks/use-invoices';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Download, ArrowLeft, FileText } from 'lucide-react';
+import { Download, ArrowLeft, FileText, Mail } from 'lucide-react';
 
 const statusLabels: Record<string, string> = {
   draft: 'Brouillon',
@@ -31,6 +32,8 @@ export default function InvoiceDetailPage(props: { params: Promise<{ id: string 
   const { data: invoice, isLoading } = useInvoice(params.id);
   const { mutate: downloadPdf } = useDownloadPdf();
   const { mutate: updateStatus } = useUpdateInvoiceStatus();
+  const { mutate: sendInvoiceEmail, isPending: isSendingEmail } = useSendInvoiceEmail();
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false);
 
   if (isLoading) {
     return (
@@ -206,7 +209,53 @@ export default function InvoiceDetailPage(props: { params: Promise<{ id: string 
           <Link href="/dashboard/invoices" className="btn-secondary">
             Retour
           </Link>
+          {invoice.status === 'draft' && (
+            <button
+              onClick={() => setShowEmailConfirm(true)}
+              disabled={isSendingEmail}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Mail size={16} />
+              {isSendingEmail ? 'Envoi en cours...' : 'Envoyer par email'}
+            </button>
+          )}
         </div>
+
+        {/* Email Confirmation Modal */}
+        {showEmailConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
+              <h2 className="text-lg font-semibold text-slate-900 mb-2">
+                Envoyer la facture par email ?
+              </h2>
+              <p className="text-slate-600 mb-6">
+                La facture sera envoyée à <strong>{invoice.client?.email}</strong> et le statut
+                passera à "Envoyée".
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowEmailConfirm(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={() => {
+                    sendInvoiceEmail(invoice.id, {
+                      onSuccess: () => {
+                        setShowEmailConfirm(false);
+                      },
+                    });
+                  }}
+                  disabled={isSendingEmail}
+                  className="flex-1 px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                >
+                  {isSendingEmail ? 'Envoi...' : 'Envoyer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

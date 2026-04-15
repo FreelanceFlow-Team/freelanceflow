@@ -51,7 +51,7 @@ export class InvoicesController {
     status: 201,
     description: 'Invoice created with auto-computed totals',
   })
-  create(@Body() dto: CreateInvoiceDto, @CurrentUser() user: JwtPayload) {
+  async create(@Body() dto: CreateInvoiceDto, @CurrentUser() user: JwtPayload) {
     return this.invoicesService.create(user.sub, dto);
   }
 
@@ -73,6 +73,7 @@ export class InvoicesController {
   @ApiResponse({ status: 404, description: 'Invoice not found' })
   async getPdf(@Param('id') id: string, @CurrentUser() user: JwtPayload, @Res() res: Response) {
     const invoice = await this.invoicesService.findOne(id, user.sub);
+    const userWithLogo = await this.invoicesService.getUserWithLogo(user.sub);
 
     const pdfData = {
       number: invoice.number,
@@ -98,8 +99,12 @@ export class InvoicesController {
       },
     };
 
-    const issuerName = await this.invoicesService.getIssuerName(user.sub);
-    const buffer = await this.pdfService.generateInvoicePdf(pdfData, issuerName);
+    const issuerName = `${userWithLogo.firstName} ${userWithLogo.lastName}`.trim();
+    const buffer = await this.pdfService.generateInvoicePdf(
+      pdfData,
+      issuerName || 'FreelanceFlow',
+      userWithLogo.logo || undefined,
+    );
 
     res.set({
       'Content-Type': 'application/pdf',
@@ -108,6 +113,15 @@ export class InvoicesController {
     });
 
     res.end(buffer);
+  }
+
+  @Post(':id/send-email')
+  @ApiOperation({ summary: 'Send invoice by email to client and mark as sent' })
+  @ApiResponse({ status: 200, description: 'Email sent and status updated to sent' })
+  @ApiResponse({ status: 400, description: 'Only draft invoices can be sent' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
+  sendInvoiceEmail(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.invoicesService.sendEmailAndUpdateStatus(id, user.sub);
   }
 
   @Delete(':id')

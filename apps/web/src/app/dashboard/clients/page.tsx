@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useClients, useDeleteClient, type Client } from '@/features/clients/hooks/use-clients';
-import { Trash2, Edit2, Plus, Users } from 'lucide-react';
+import { Trash2, Edit2, Plus, Users, FileDown } from 'lucide-react';
+import { exportToCsv } from '@/lib/csv-export';
 
 export default function ClientsPage() {
   const { data: clients = [], isLoading } = useClients('');
@@ -44,13 +45,34 @@ export default function ClientsPage() {
             {clients.length} client{clients.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <Link
-          href="/dashboard/clients/new"
-          className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-        >
-          <Plus size={18} />
-          Ajouter un client
-        </Link>
+        <div className="flex items-center gap-2">
+          {clients.length > 0 && (
+            <button
+              onClick={() =>
+                exportToCsv('clients.csv', clients, [
+                  { key: 'name', label: 'Nom' },
+                  { key: 'email', label: 'Email' },
+                  { key: 'phone', label: 'Téléphone' },
+                  { key: 'address', label: 'Adresse' },
+                  { key: 'city', label: 'Ville' },
+                  { key: 'postalCode', label: 'Code postal' },
+                  { key: 'country', label: 'Pays' },
+                ])
+              }
+              className="inline-flex items-center gap-2 border border-slate-300 text-slate-700 px-4 py-2.5 rounded-lg font-medium hover:bg-slate-50 transition-colors"
+            >
+              <FileDown size={18} />
+              <span className="hidden sm:inline">Exporter CSV</span>
+            </button>
+          )}
+          <Link
+            href="/dashboard/clients/new"
+            className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+          >
+            <Plus size={18} />
+            Ajouter un client
+          </Link>
+        </div>
       </div>
 
       {clients.length === 0 ? (

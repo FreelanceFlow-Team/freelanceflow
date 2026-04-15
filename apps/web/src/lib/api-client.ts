@@ -1,6 +1,6 @@
 'use client';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3010/api';
 
 interface FetchOptions extends RequestInit {
   skipAuth?: boolean;
@@ -18,9 +18,14 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
   const { skipAuth = false, ...fetchOptions } = options;
 
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(fetchOptions.headers as Record<string, string>),
   };
+
+  const hasFormDataBody = typeof FormData !== 'undefined' && fetchOptions.body instanceof FormData;
+
+  if (!hasFormDataBody && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (!skipAuth) {
     const token = await getAuthToken();
@@ -50,7 +55,16 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
   return (await response.blob()) as T;
 }
 
-// Methods spécifiques
+function encodeBody(body?: unknown): BodyInit | undefined {
+  if (body === undefined || body === null) return undefined;
+
+  if (typeof FormData !== 'undefined' && body instanceof FormData) {
+    return body;
+  }
+
+  return JSON.stringify(body);
+}
+
 export const api = {
   get: <T>(endpoint: string, options?: FetchOptions) =>
     apiClient<T>(endpoint, { ...options, method: 'GET' }),
@@ -59,14 +73,14 @@ export const api = {
     apiClient<T>(endpoint, {
       ...options,
       method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
+      body: encodeBody(body),
     }),
 
   patch: <T>(endpoint: string, body?: unknown, options?: FetchOptions) =>
     apiClient<T>(endpoint, {
       ...options,
       method: 'PATCH',
-      body: body ? JSON.stringify(body) : undefined,
+      body: encodeBody(body),
     }),
 
   delete: <T>(endpoint: string, options?: FetchOptions) =>

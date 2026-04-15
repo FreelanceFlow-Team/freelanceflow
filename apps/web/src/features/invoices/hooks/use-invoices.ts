@@ -49,6 +49,8 @@ export function useInvoices(userId: string) {
     queryFn: async () => {
       return api.get<Invoice[]>('/invoices');
     },
+    staleTime: 20_000,
+    gcTime: 5 * 60_000,
   });
 }
 
@@ -116,6 +118,18 @@ export function useDownloadPdf() {
       link.download = `facture-${invoiceId}.pdf`;
       link.click();
       window.URL.revokeObjectURL(url);
+    },
+  });
+}
+
+export function useSendInvoiceEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (invoiceId: string) => {
+      return api.post<Invoice>(`/invoices/${invoiceId}/send-email`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: INVOICES_KEY });
     },
   });
 }

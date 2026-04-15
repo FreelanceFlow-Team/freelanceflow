@@ -23,6 +23,8 @@ export function useServices(userId: string) {
     queryFn: async () => {
       return api.get<Service[]>('/services');
     },
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
   });
 }
 

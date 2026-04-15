@@ -36,4 +36,13 @@ export default tseslint.config(
       'prettier/prettier': 'error',
     },
   },
+  {
+    files: ['**/*.spec.ts', '**/*.test.ts'],
+    rules: {
+      '@typescript-eslint/unbound-method': 'off',
+    },
+  },
+  {
+    ignores: ['test/**'],
+  },
 );

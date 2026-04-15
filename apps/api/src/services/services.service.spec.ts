@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NotFoundException } from '@nestjs/common';
 import { ServicesService } from './services.service';
 import type { PrismaService } from '../prisma/prisma.service';
+import type { CacheService } from '../cache/cache.service';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -16,6 +17,13 @@ const mockService = {
   updatedAt: new Date(),
 };
 
+const mockCache = {
+  get: vi.fn().mockResolvedValue(null),
+  set: vi.fn().mockResolvedValue(undefined),
+  del: vi.fn().mockResolvedValue(undefined),
+  invalidatePattern: vi.fn().mockResolvedValue(undefined),
+} as unknown as CacheService;
+
 function buildService() {
   const prisma = {
     service: {
@@ -27,7 +35,7 @@ function buildService() {
     },
   } as unknown as PrismaService;
 
-  return { svc: new ServicesService(prisma), prisma };
+  return { svc: new ServicesService(prisma, mockCache), prisma };
 }
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
@@ -49,7 +57,7 @@ describe('ServicesService', () => {
       orderBy: { createdAt: 'desc' },
     });
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe(mockService.id);
+    expect((result[0] as typeof mockService).id).toBe(mockService.id);
   });
 
   // 2. findOne — throws NotFoundException when not found

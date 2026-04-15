@@ -21,6 +21,7 @@ const mockUser = {
   passwordHash: 'hashed',
   firstName: 'John',
   lastName: 'Doe',
+  logo: null,
   role: 'freelancer' as const,
   refreshToken: null,
   createdAt: new Date(),
