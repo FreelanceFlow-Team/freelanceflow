@@ -41,6 +41,7 @@ model User {
   passwordHash String
   firstName    String
   lastName     String
+  logo         String?
   role         UserRole  @default(freelancer)
   refreshToken String?
 

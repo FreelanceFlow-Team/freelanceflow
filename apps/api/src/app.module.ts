@@ -7,6 +7,7 @@ import { ServicesModule } from './services/services.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { PdfModule } from './pdf/pdf.module';
 import { EmailModule } from './email/email.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { EmailModule } from './email/email.module';
     InvoicesModule,
     PdfModule,
     EmailModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [],

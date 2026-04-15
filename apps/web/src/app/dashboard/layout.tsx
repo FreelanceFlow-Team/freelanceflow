@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Briefcase, FileText, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, Briefcase, FileText, User, LogOut, Menu, X } from 'lucide-react';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -53,6 +53,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { label: 'Clients', href: '/dashboard/clients', icon: Users },
     { label: 'Services', href: '/dashboard/services', icon: Briefcase },
     { label: 'Factures', href: '/dashboard/invoices', icon: FileText },
+    { label: 'Profil', href: '/dashboard/profile', icon: User },
   ];
 
   const isActive = (href: string) => {
