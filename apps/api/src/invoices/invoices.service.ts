@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CacheService } from '../cache/cache.service';
 import { PdfService } from '../pdf/pdf.service';
 import { EmailService } from '../email/email.service';
 import { CreateInvoiceDto, UpdateInvoiceStatusDto } from './dto/invoice.dto';
@@ -8,16 +9,27 @@ import { CreateInvoiceDto, UpdateInvoiceStatusDto } from './dto/invoice.dto';
 export class InvoicesService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
     private readonly pdfService: PdfService,
     private readonly emailService: EmailService,
   ) {}
 
-  findAll(userId: string) {
-    return this.prisma.invoice.findMany({
+  private cacheKey(userId: string) {
+    return `invoices:${userId}`;
+  }
+
+  async findAll(userId: string) {
+    const cached = await this.cache.get<unknown[]>(this.cacheKey(userId));
+    if (cached) return cached;
+
+    const invoices = await this.prisma.invoice.findMany({
       where: { userId },
       include: { client: true, lines: true },
       orderBy: { createdAt: 'desc' },
     });
+
+    await this.cache.set(this.cacheKey(userId), invoices, 30);
+    return invoices;
   }
 
   async findOne(id: string, userId: string) {
@@ -60,6 +72,8 @@ export class InvoicesService {
       },
       include: { client: true, lines: true },
     });
+
+    await this.cache.del(this.cacheKey(userId));
 
     // Send invoice PDF by email to the client (non-blocking)
     this.sendInvoicePdfToClient(invoice, userId).catch(() => {
@@ -182,6 +196,7 @@ export class InvoicesService {
         include: { client: true, lines: true },
       });
 
+      await this.cache.del(this.cacheKey(userId));
       return updatedInvoice;
     } catch (error) {
       throw new BadRequestException(
@@ -192,11 +207,13 @@ export class InvoicesService {
 
   async updateStatus(id: string, userId: string, dto: UpdateInvoiceStatusDto) {
     await this.findOne(id, userId);
-    return this.prisma.invoice.update({
+    const invoice = await this.prisma.invoice.update({
       where: { id },
       data: { status: dto.status },
       include: { client: true, lines: true },
     });
+    await this.cache.del(this.cacheKey(userId));
+    return invoice;
   }
 
   async remove(id: string, userId: string) {
@@ -204,7 +221,9 @@ export class InvoicesService {
     if (invoice.status !== 'draft') {
       throw new BadRequestException('Only draft invoices can be deleted');
     }
-    return this.prisma.invoice.delete({ where: { id } });
+    const deleted = await this.prisma.invoice.delete({ where: { id } });
+    await this.cache.del(this.cacheKey(userId));
+    return deleted;
   }
 
   async getIssuerName(userId: string): Promise<string> {

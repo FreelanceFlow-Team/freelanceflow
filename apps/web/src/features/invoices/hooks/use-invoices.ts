@@ -49,6 +49,8 @@ export function useInvoices(userId: string) {
     queryFn: async () => {
       return api.get<Invoice[]>('/invoices');
     },
+    staleTime: 20_000,
+    gcTime: 5 * 60_000,
   });
 }
 
