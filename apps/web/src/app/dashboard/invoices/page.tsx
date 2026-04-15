@@ -7,9 +7,10 @@ import {
   useDeleteInvoice,
   useUpdateInvoiceStatus,
   useDownloadPdf,
+  useSendInvoiceEmail,
   type Invoice,
 } from '@/features/invoices/hooks/use-invoices';
-import { Trash2, Download, Plus, Eye, FileText } from 'lucide-react';
+import { Trash2, Download, Plus, Eye, FileText, Mail } from 'lucide-react';
 import { formatCurrency, formatDateShort } from '@/lib/utils';
 
 const statusColors: Record<string, string> = {
@@ -33,12 +34,26 @@ export default function InvoicesPage() {
   const { mutate: deleteInvoice, isPending: isDeleting } = useDeleteInvoice();
   const { mutate: updateStatus } = useUpdateInvoiceStatus();
   const { mutate: downloadPdf } = useDownloadPdf();
+  const { mutate: sendInvoiceEmail, isPending: isSendingEmail } = useSendInvoiceEmail();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [sendingInvoiceId, setSendingInvoiceId] = useState<string | null>(null);
 
   const handleDelete = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
     setIsConfirming(true);
+  };
+
+  const handleSendEmail = (invoice: Invoice) => {
+    setSendingInvoiceId(invoice.id);
+    sendInvoiceEmail(invoice.id, {
+      onSuccess: () => {
+        setSendingInvoiceId(null);
+      },
+      onError: () => {
+        setSendingInvoiceId(null);
+      },
+    });
   };
 
   const confirmDelete = () => {
@@ -156,6 +171,16 @@ export default function InvoicesPage() {
                           >
                             <Eye size={16} />
                           </Link>
+                          {invoice.status === 'draft' && (
+                            <button
+                              onClick={() => handleSendEmail(invoice)}
+                              disabled={isSendingEmail || sendingInvoiceId === invoice.id}
+                              className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Envoyer par email"
+                            >
+                              <Mail size={16} />
+                            </button>
+                          )}
                           <button
                             onClick={() => downloadPdf(invoice.id)}
                             className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -208,6 +233,15 @@ export default function InvoicesPage() {
                     >
                       <Eye size={18} />
                     </Link>
+                    {invoice.status === 'draft' && (
+                      <button
+                        onClick={() => handleSendEmail(invoice)}
+                        disabled={isSendingEmail || sendingInvoiceId === invoice.id}
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Mail size={18} />
+                      </button>
+                    )}
                     <button
                       onClick={() => downloadPdf(invoice.id)}
                       className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"

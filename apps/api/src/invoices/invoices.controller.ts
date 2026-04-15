@@ -51,7 +51,7 @@ export class InvoicesController {
     status: 201,
     description: 'Invoice created with auto-computed totals',
   })
-  create(@Body() dto: CreateInvoiceDto, @CurrentUser() user: JwtPayload) {
+  async create(@Body() dto: CreateInvoiceDto, @CurrentUser() user: JwtPayload) {
     return this.invoicesService.create(user.sub, dto);
   }
 
@@ -108,6 +108,15 @@ export class InvoicesController {
     });
 
     res.end(buffer);
+  }
+
+  @Post(':id/send-email')
+  @ApiOperation({ summary: 'Send invoice by email to client and mark as sent' })
+  @ApiResponse({ status: 200, description: 'Email sent and status updated to sent' })
+  @ApiResponse({ status: 400, description: 'Only draft invoices can be sent' })
+  @ApiResponse({ status: 404, description: 'Invoice not found' })
+  sendInvoiceEmail(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.invoicesService.sendEmailAndUpdateStatus(id, user.sub);
   }
 
   @Delete(':id')

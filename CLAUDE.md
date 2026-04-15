@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 FreelanceFlow is a French-language freelance activity management app (invoicing, clients, services). It's a **Turborepo monorepo** with:
 
-- `apps/api` — NestJS 11 backend (port 3001)
+- `apps/api` — NestJS 11 backend (port 3010)
 - `apps/web` — Next.js 16 frontend (port 3000)
 - `packages/types` — Shared TypeScript types (`@freelanceflow/types`)
 
@@ -84,7 +84,7 @@ NestJS modules, one per domain:
 - `prisma/` — Global `PrismaService` / `PrismaModule` (imported everywhere that needs DB)
 - `common/` — JWT guard, `@CurrentUser()` decorator, global exception filter
 
-Global API prefix: `/api`. Swagger docs: `http://localhost:3001/api/docs`.
+Global API prefix: `/api`. Swagger docs: `http://localhost:3010/api/docs`.
 
 ### Frontend (`apps/web/src/`)
 

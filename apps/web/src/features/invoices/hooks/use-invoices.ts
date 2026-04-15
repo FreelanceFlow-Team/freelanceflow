@@ -119,3 +119,15 @@ export function useDownloadPdf() {
     },
   });
 }
+
+export function useSendInvoiceEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (invoiceId: string) => {
+      return api.post<Invoice>(`/invoices/${invoiceId}/send-email`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: INVOICES_KEY });
+    },
+  });
+}
