@@ -1,36 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
-import type { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class EmailService {
-  private transporter: Transporter;
+  private readonly resend: Resend;
   private readonly logger = new Logger(EmailService.name);
-  private readonly fromAddress = process.env.EMAIL_FROM || 'noreply@freelanceflow.app';
+  private readonly fromAddress = process.env.EMAIL_FROM || 'onboarding@resend.dev';
 
   constructor() {
-    this.initializeTransporter();
-  }
-
-  private initializeTransporter() {
-    // Si SMTP_USER n'est pas défini, on suppose que c'est un mode test (MailHog) sans authentification
-    const hasAuth = process.env.SMTP_USER && process.env.SMTP_PASSWORD;
-
-    this.logger.log(
-      `EMAIL: Initializing SMTP transporter for ${process.env.SMTP_HOST}:${process.env.SMTP_PORT}${hasAuth ? ' with auth' : ' without auth'}`,
-    );
-
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587', 10),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: hasAuth
-        ? {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASSWORD,
-          }
-        : undefined,
-    });
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      this.logger.warn('EMAIL: RESEND_API_KEY not set — emails will fail');
+    }
+    this.resend = new Resend(apiKey);
+    this.logger.log('EMAIL: Initialized Resend API client');
   }
 
   /**
@@ -58,23 +41,26 @@ export class EmailService {
         <p><em>Cet email a été généré automatiquement par FreelanceFlow</em></p>
       `;
 
-      const info = await this.transporter.sendMail({
+      const { data, error } = await this.resend.emails.send({
         from: this.fromAddress,
         replyTo: freelancerEmail,
-        to: clientEmail,
+        to: [clientEmail],
         subject,
         html,
         attachments: [
           {
             filename: `facture-${invoiceNumber}.pdf`,
-            content: pdfBuffer,
-            contentType: 'application/pdf',
+            content: pdfBuffer.toString('base64'),
           },
         ],
       });
 
+      if (error) {
+        throw new Error(error.message);
+      }
+
       this.logger.log(
-        `EMAIL: Invoice ${invoiceNumber} sent successfully to ${clientEmail} (ID: ${info.messageId})`,
+        `EMAIL: Invoice ${invoiceNumber} sent successfully to ${clientEmail} (ID: ${data?.id})`,
       );
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -83,22 +69,6 @@ export class EmailService {
         error instanceof Error ? error.stack : undefined,
       );
       throw error;
-    }
-  }
-
-  /**
-   * Verify the email configuration is working
-   */
-  async verify(): Promise<boolean> {
-    try {
-      await this.transporter.verify();
-      this.logger.log('Email transporter verified successfully');
-      return true;
-    } catch (error) {
-      this.logger.error(
-        `Email verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-      return false;
     }
   }
 }
