@@ -59,7 +59,8 @@ export class EmailService {
       `;
 
       const info = await this.transporter.sendMail({
-        from: freelancerEmail || this.fromAddress,
+        from: this.fromAddress,
+        replyTo: freelancerEmail,
         to: clientEmail,
         subject,
         html,

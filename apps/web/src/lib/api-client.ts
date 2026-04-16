@@ -42,6 +42,14 @@ export async function apiClient<T>(endpoint: string, options: FetchOptions = {})
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+      throw new Error('Session expirée. Veuillez vous reconnecter.');
+    }
     const error = await response.json().catch(() => ({}));
     throw new Error(error.message || `API Error: ${response.status}`);
   }
@@ -100,6 +108,14 @@ export const api = {
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
+        throw new Error('Session expirée. Veuillez vous reconnecter.');
+      }
       throw new Error(`Failed to download PDF: ${response.status}`);
     }
 
